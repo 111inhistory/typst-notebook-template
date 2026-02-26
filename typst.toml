@@ -1,0 +1,4 @@
+[package]
+name = "notebook-template"
+version = "0.1.0"
+entrypoint = "lib.typ"
