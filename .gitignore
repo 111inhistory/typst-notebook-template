@@ -1,0 +1,9 @@
+# ignore all generated files
+*.pdf
+*.svg
+
+# ignore coverage test files
+target/
+
+#ignore vscode configurational files
+.vscode/

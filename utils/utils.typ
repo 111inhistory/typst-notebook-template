@@ -1,21 +1,63 @@
-// some common utilities
+/// some common utilities
 
+#let _clone-value(value) = {
+  if type(value) == dictionary {
+    let copied = (:)
+    for (key, item) in value.pairs() {
+      copied.insert(key, _clone-value(item))
+    }
+    return copied
+  }
+
+  if type(value) == array {
+    let copied = ()
+    for item in value {
+      copied.push(_clone-value(item))
+    }
+    return copied
+  }
+
+  value
+}
+
+/// (Deeply) clone a dict.
+/// - value (dict): the dict to be cloned
+/// -> dict: the cloned dict
+#let clone-dict(value) = {
+  assert(
+    type(value) == dictionary,
+    message: "clone-dict 只接受 dictionary，实际为 " + repr(type(value)),
+  )
+  _clone-value(value)
+}
+
+/// (Deeply) merge two dicts. The modded dict overrides the values of specified keys in the raw dict, inheriting the original part, add new keys.
+/// - raw (dict): the original dict
+/// - mod (dict | none): the dict to modify the original dict. If none, return the clone of the original dict.
+/// -> dict: the merged dict
 #let merge-dict(raw, mod) = {
-  if mod == none { return raw }
-  let raw_keys = raw.keys()
-  for key in mod.keys() {
-    if raw_keys.contains(key) {
-      let raw_val = raw.at(key)
-      let mod_val = mod.at(key)
+  assert(
+    type(raw) == dictionary,
+    message: "merge-dict 的 raw 必须是 dictionary，实际为 " + repr(type(raw)),
+  )
+  let res = clone-dict(raw)
+  if mod == none { return res }
+  assert(
+    type(mod) == dictionary,
+    message: "merge-dict 的 mod 必须是 dictionary 或 none，实际为 " + repr(type(mod)),
+  )
 
-      if type(raw_val) == type(mod_val) == dictionary {
-        raw.at(key) = merge-dict(raw_val, mod_val)
+  for (key, mod_val) in mod.pairs() {
+    if key in res {
+      let res_val = res.at(key)
+      if type(res_val) == dictionary and type(mod_val) == dictionary {
+        res.at(key) = merge-dict(res_val, mod_val)
       } else {
-        raw.at(key) = mod_val
+        res.at(key) = _clone-value(mod_val)
       }
     } else {
-      raw.insert(key, mod.at(key))
+      res.insert(key, _clone-value(mod_val))
     }
   }
-  return raw
+  return res
 }
