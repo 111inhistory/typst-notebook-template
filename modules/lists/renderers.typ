@@ -1,57 +1,100 @@
-#import "/modules/lists/connectors.typ": render-block-row
+#import "/utils/anchor.typ": anchor-helper
+#import "/utils/content-utils.typ": sequence, split-first-paragraph
 
-#let sequence = [].func()
+// Tracks the current parent numbering path.
+// `enum` stores real numbers, while `list` uses `0` as a placeholder.
 #let parents = state("_list-enum-internal", ())
-#let item-paths = state("_list-item-path", ())
-#let block-indent-serial = state("_block-indent-serial", 0)
+// Counts block-indent enum list instances.
+#let block-indent-enum-counter = counter("_block-indent-enum")
+// Counts block-indent bullet list instances.
+#let block-indent-list-counter = counter("_block-indent-list")
 
-#let split-first-paragraph(body) = {
-  if body.func() != sequence {
-    return (
-      first: body,
-      rest: none,
-    )
+/// Render a single block-indent row with an optional connector slot.
+/// - prefix (str): Anchor prefix for the current list instance.
+/// - index (int): Zero-based item index within the current list instance.
+/// - label (content): Rendered marker or numbering content.
+/// - body (content): Item body content.
+/// - indent (length): Total indentation reserved for the label area.
+/// - label-align (str): Alignment keyword, usually `"left"` or `"right"`.
+/// - connector-enabled (bool): Whether the connector slot should be rendered.
+/// - connector-position (length): Distance from the body-side edge of the indent area.
+/// - connector-stroke (stroke | dictionary): Stroke used for the connector.
+/// - has-next (bool): Whether another sibling item follows this row.
+/// -> content
+#let render-block-indent-row(
+  prefix,
+  index,
+  label,
+  body,
+  indent,
+  label-align,
+  connector-enabled,
+  connector-position,
+  connector-stroke,
+  has-next,
+) = {
+  let (create: body-anc-create, findpos: body-anc-findpos) = anchor-helper(prefix + "body-")
+  let (create: num-anc-create, findpos: num-anc-findpos) = anchor-helper(prefix + "num-")
+
+  let ret = ()
+
+  // The first row only registers the numbering anchor.
+  ret.push(grid.cell(
+    colspan: 4,
+    inset: 0pt,
+  )[
+    #num-anc-create(index)
+  ])
+  // The second row places the label inside the full indent slot.
+  ret.push(grid.cell(
+    colspan: 3,
+    align: if label-align == "right" { right + top } else { left + top },
+  )[
+    #box[#context {
+      let baseline-pos = body-anc-findpos(index)
+      let numbering-pos = num-anc-findpos(index)
+      // Move the label down until its bottom touches the measured first-line baseline.
+      v(baseline-pos.y - numbering-pos.y - measure(label).height)
+      label
+    }]
+  ])
+  // The body remains in normal flow and stretches the connector row through rowspan.
+  ret.push(grid.cell(
+    rowspan: 2,
+    inset: 0pt,
+    align: left + top,
+  )[
+    #set text(cjk-latin-spacing: none)
+    #sym.zws#body-anc-create(index)#body
+  ])
+  // The connector is currently drawn as the left stroke of a dedicated slot cell.
+  ret.push([])
+  ret.push(grid.cell(stroke: if connector-enabled { connector-stroke }, inset: 0pt)[])
+  ret.push([])
+  if has-next {
+    ret.push(grid.cell(
+      colspan: 4,
+      inset: 0pt,
+    )[
+      #parbreak()#sym.zws
+    ])
   }
-
-  let first = []
-  let rest = none
-  let reached-rest = false
-
-  for part in body.children {
-    if not reached-rest and part.func() == parbreak {
-      reached-rest = true
-      rest = parbreak()
-    } else if reached-rest {
-      rest += part
-    } else {
-      first += part
-    }
-  }
-
-  (
-    first: first,
-    rest: rest,
-  )
+  ret
 }
 
-#let resolve-enum-number(child, fallback) = if child.has("number") and child.number != auto {
-  child.number
-} else {
-  fallback
-}
-
-#let render-number(settings, pattern, values) = (settings.at("post-numbering"))(
-  numbering(pattern, ..values),
-)
-
+/// Render first-line-indent enums without using a grid layout.
+/// - settings (dictionary): Renderer settings for this style variant.
+/// -> function
 #let firstline-indent-enum(settings) = it => context {
-  let spacing = it.body-indent
-  let par-indent = it.indent
-  let indent = settings.indentation
+  let item-spacing = it.spacing
+  let indent = it.indent
+  let body-indent = it.body-indent
   let numbering-pattern = it.numbering
   let numbering-align = settings.numbering-align
+  let post-numbering = settings.post-numbering
 
-  set par(spacing: par-indent, first-line-indent: 0em)
+  set par(spacing: item-spacing, first-line-indent: 0em)
+  // Start number of the current enum list.
   let start = if it.start != auto {
     it.start
   } else if (
@@ -65,24 +108,28 @@
   }
 
   let delta = if it.reversed { -1 } else { 1 }
+  // Current item number.
   let number = start
   let ret = []
   for child in it.children {
-    number = resolve-enum-number(child, number)
-    let split = split-first-paragraph(child.body)
-    let num = render-number(settings, numbering-pattern, parents.get() + (number,))
-    let left-back-len = if numbering-align == "right" {
-      spacing + measure(num).width
+    number = if child.has("number") and child.number != auto {
+      child.number
     } else {
-      indent - spacing
+      number
     }
+    let split = split-first-paragraph(child.body)
+    let num = numbering(numbering-pattern, ..parents.get(), number)
+    num = if post-numbering != none { post-numbering(num) } else { num }
+    let left-back-len = if numbering-align == "right" {
+      body-indent + measure(num).width
+    } else { indent - body-indent }
     let body = if it.tight {
       text(
         {
-          h(par-indent)
+          h(indent)
           h(-left-back-len)
           num
-          h(spacing)
+          h(body-indent)
           split.first
         },
         cjk-latin-spacing: none,
@@ -97,7 +144,7 @@
               {
                 h(-left-back-len)
                 num
-                h(spacing)
+                h(body-indent)
                 split.first
               },
               cjk-latin-spacing: none,
@@ -119,13 +166,16 @@
   ret
 }
 
+/// Render first-line-indent bullet lists without using a grid layout.
+/// - settings (dictionary): Renderer settings for this style variant.
+/// -> function
 #let firstline-indent-list(settings) = it => context {
-  let spacing = it.body-indent
-  let par-indent = it.indent
-  let indent = settings.indentation
+  let item-spacing = it.spacing
+  let indent = it.indent
+  let body-indent = it.body-indent
   let marker-pattern = it.marker
 
-  set par(spacing: par-indent, first-line-indent: 0em)
+  set par(spacing: item-spacing, first-line-indent: 0em)
   let level = parents.get().len()
   let marker = if type(marker-pattern) == array {
     marker-pattern.at(calc.rem-euclid(level, marker-pattern.len()))
@@ -139,17 +189,17 @@
   for child in it.children {
     let split = split-first-paragraph(child.body)
     let left-back-len = if marker-align == "right" {
-      spacing + measure(marker).width
+      body-indent + measure(marker).width
     } else {
-      indent - spacing
+      indent - body-indent
     }
     let body = if it.tight {
       text(
         {
-          h(par-indent)
+          h(indent)
           h(-left-back-len)
           marker
-          h(spacing)
+          h(body-indent)
           split.first
         },
         cjk-latin-spacing: none,
@@ -164,7 +214,7 @@
               {
                 h(-left-back-len)
                 marker
-                h(spacing)
+                h(body-indent)
                 split.first
               },
               cjk-latin-spacing: none,
@@ -185,18 +235,23 @@
   ret
 }
 
+/// Render block-indent enums using the grid-based local layout.
+/// - settings (dictionary): Renderer settings for this style variant.
+/// -> function
 #let block-indent-enum(settings) = it => context {
-  let spacing = it.body-indent
-  let par-indent = it.indent
-  let indent = settings.indentation
+  let item-spacing = it.spacing
+  let indent = it.indent
+  let body-indent = it.body-indent
   let numbering-pattern = it.numbering
-  let numbering-align = settings.numbering-align
   let connector = settings.connector
-  let prefix-width = indent - spacing
-  let serial = block-indent-serial.get()
-  block-indent-serial.update(n => n + 1)
+  let post-numbering = settings.post-numbering
 
-  set par(spacing: par-indent, first-line-indent: 0em)
+  set par(spacing: item-spacing)
+
+  block-indent-enum-counter.step()
+  let prefix = "_block-indent-enum-" + str(block-indent-enum-counter.get().first()) + "-"
+
+  set par(spacing: item-spacing, first-line-indent: 0em)
   let start = if it.start != auto {
     it.start
   } else if (
@@ -211,54 +266,66 @@
 
   let delta = if it.reversed { -1 } else { 1 }
   let number = start
-  let ret = []
+  let grid-parts = ()
   for (i, child) in it.children.enumerate() {
-    let path = item-paths.get() + (i,)
-    let current-anchor-id = "block-enum-" + str(serial) + "-" + path.map(str).join("-")
-    let tail-anchor-id = if i == it.children.len() - 1 {
-      current-anchor-id + "-tail"
+    number = if child.has("number") and child.number != auto {
+      child.number
     } else {
-      none
+      number
     }
-    let prev-anchor-id = if i > 0 {
-      "block-enum-" + str(serial) + "-" + (item-paths.get() + (i - 1,)).map(str).join("-")
-    } else {
-      none
-    }
-    number = resolve-enum-number(child, number)
-    let num = render-number(settings, numbering-pattern, parents.get() + (number,))
+    let num = numbering(numbering-pattern, ..parents.get(), number)
+    num = if settings.post-numbering != none { post-numbering(num) } else { num }
+    num += h(body-indent)
     let body = {
       parents.update(arr => arr + (number,))
-      item-paths.update(arr => arr + (i,))
       child.body
-      item-paths.update(arr => arr.slice(0, -1))
       parents.update(arr => arr.slice(0, -1))
     }
     number += delta
-    ret += render-block-row(
+    grid-parts += render-block-indent-row(
+      prefix,
+      i,
       num,
-      prefix-width,
-      numbering-align,
-      indent,
       body,
-      connector,
-      prev-anchor-id,
-      current-anchor-id,
-      tail-anchor-id,
-    ) + parbreak()
+      indent,
+      settings.numbering-align,
+      connector.enabled,
+      connector.position,
+      connector.stroke,
+      i < it.children.len() - 1,
+    )
   }
-  ret
+
+  let connector-left-gap-width = indent - connector.position
+  let connector-right-gap-width = connector.position
+  let columns = (
+    connector-left-gap-width,
+    0pt,
+    connector-right-gap-width,
+    1fr,
+  )
+  let rows = ((0pt, auto, auto, item-spacing) * (it.children.len() - 1) + (0pt, auto, auto))
+  grid(
+    columns: columns,
+    rows: rows,
+    align: left + top,
+    ..grid-parts,
+  )
 }
 
+/// Render block-indent bullet lists using the same local grid template.
+/// - settings (dictionary): Renderer settings for this style variant.
+/// -> function
 #let block-indent-list(settings) = it => context {
-  let spacing = it.body-indent
-  let par-indent = it.indent
-  let indent = settings.indentation
+  let item-spacing = it.spacing
+  let indent = it.indent
+  let body-indent = it.body-indent
   let marker-pattern = it.marker
   let connector = settings.connector
-  let prefix-width = indent - spacing
-  let serial = block-indent-serial.get()
-  block-indent-serial.update(n => n + 1)
+  let marker-align = settings.marker-align
+
+  block-indent-list-counter.step()
+  let prefix = "_block-indent-list-" + str(block-indent-list-counter.get().first()) + "-"
 
   let level = parents.get().len()
   let marker = if type(marker-pattern) == array {
@@ -268,155 +335,49 @@
   } else {
     marker-pattern
   }
-  let marker-align = settings.marker-align
 
-  set par(spacing: par-indent, first-line-indent: 0em)
-  let ret = []
+  marker += h(body-indent)
+
+  set par(spacing: item-spacing, first-line-indent: 0em)
+  let grid-parts = ()
   for (i, child) in it.children.enumerate() {
-    let path = item-paths.get() + (i,)
-    let current-anchor-id = "block-list-" + str(serial) + "-" + path.map(str).join("-")
-    let tail-anchor-id = if i == it.children.len() - 1 {
-      current-anchor-id + "-tail"
-    } else {
-      none
-    }
-    let prev-anchor-id = if i > 0 {
-      "block-list-" + str(serial) + "-" + (item-paths.get() + (i - 1,)).map(str).join("-")
-    } else {
-      none
-    }
     let body = {
       parents.update(arr => arr + (0,))
-      item-paths.update(arr => arr + (i,))
       child.body
-      item-paths.update(arr => arr.slice(0, -1))
       parents.update(arr => arr.slice(0, -1))
     }
-    ret += render-block-row(
+    grid-parts += render-block-indent-row(
+      prefix,
+      i,
       marker,
-      prefix-width,
-      marker-align,
-      indent,
       body,
-      connector,
-      prev-anchor-id,
-      current-anchor-id,
-      tail-anchor-id,
-    ) + parbreak()
+      indent,
+      marker-align,
+      connector.enabled,
+      connector.position,
+      connector.stroke,
+      i < it.children.len() - 1,
+    )
   }
-  ret
+  let connector-left-gap-width = indent - connector.position
+  let connector-right-gap-width = connector.position
+  let columns = (
+    connector-left-gap-width,
+    0pt,
+    connector-right-gap-width,
+    1fr,
+  )
+  let rows = ((0pt, auto, auto, item-spacing) * (it.children.len() - 1) + (0pt, auto, auto))
+  grid(
+    columns: columns,
+    rows: rows,
+    align: left + top,
+    ..grid-parts,
+  )
 }
 
-#let hanging-indent-enum(settings) = it => context {
-  let spacing = it.body-indent
-  let par-indent = it.indent
-  let indent = settings.indentation
-  let numbering-pattern = it.numbering
-  let numbering-align = settings.numbering-align
-
-  set par(spacing: par-indent)
-  let start = if it.start != auto {
-    it.start
-  } else if (
-    it.children.first().has("number") and it.children.first().number != auto
-  ) {
-    it.children.first().number
-  } else if it.reversed {
-    it.children.len()
-  } else {
-    1
-  }
-
-  let delta = if it.reversed { -1 } else { 1 }
-  let number = start
-  let ret = []
-  for child in it.children {
-    number = resolve-enum-number(child, number)
-    let num = render-number(settings, numbering-pattern, parents.get() + (number,))
-    let left-back-len = if numbering-align == "right" {
-      spacing + measure(num).width
-    } else {
-      indent - spacing
-    }
-    let body = {
-      parents.update(arr => arr + (number,))
-      {
-        set par(hanging-indent: indent)
-        text(
-          {
-            h(-left-back-len)
-            num
-            h(spacing)
-            child.body
-          },
-          cjk-latin-spacing: none,
-        )
-      }
-      parents.update(arr => arr.slice(0, -1))
-    }
-    number += delta
-    if parents.get().len() > 0 {
-      ret += h(indent) + body + linebreak()
-    } else {
-      ret += body + parbreak()
-    }
-  }
-  ret
-}
-
-#let hanging-indent-list(settings) = it => context {
-  let spacing = it.body-indent
-  let par-indent = it.indent
-  let indent = settings.indentation
-  let marker-pattern = it.marker
-
-  set par(spacing: par-indent)
-  let level = parents.get().len()
-  let marker = if type(marker-pattern) == array {
-    marker-pattern.at(calc.rem-euclid(level, marker-pattern.len()))
-  } else if type(marker-pattern) == function {
-    marker-pattern(level)
-  } else {
-    marker-pattern
-  }
-  let marker-align = settings.marker-align
-  let ret = []
-  for child in it.children {
-    let left-back-len = if marker-align == "right" {
-      spacing + measure(marker).width
-    } else {
-      indent - spacing
-    }
-    let body = {
-      parents.update(arr => arr + (0,))
-      {
-        set par(hanging-indent: indent)
-        text(
-          {
-            h(-left-back-len)
-            marker
-            h(spacing)
-            child.body
-          },
-          cjk-latin-spacing: none,
-        )
-      }
-      parents.update(arr => arr.slice(0, -1))
-    }
-    if parents.get().len() > 0 {
-      ret += h(indent) + body + linebreak()
-    } else {
-      ret += body + parbreak()
-    }
-  }
-  ret
-}
-
+/// Dispatch table keyed by renderer type name.
 #let renderer-table = (
-  hanging-indent: (
-    enum: hanging-indent-enum,
-    list: hanging-indent-list,
-  ),
   block-indent: (
     enum: block-indent-enum,
     list: block-indent-list,

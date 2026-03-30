@@ -33,10 +33,12 @@
     assert(type(id) == str and id.len() > 0, message: "id 必须是非空字符串")
     target = id
   } else {
-    target = prefix + "-" + nums.pos().reduce((string, part) => string + "-" + str(part))
+    target = prefix
+    for num in nums.pos() {
+      assert(type(num) == int, message: "nums 中的每个元素必须是整数")
+      target += "-" + str(num)
+    }
   }
-  assert(_anchor-series.get().keys().contains(target), message: "Anchor ID '" + target + "' 不存在")
-
   let result = query(metadata.where(value: target))
   if result.len() == 0 {
     none
@@ -59,10 +61,12 @@
     assert(type(id) == str and id.len() > 0, message: "id 必须是非空字符串")
     target = id
   } else {
-    target = prefix + "-" + nums.pos().reduce((string, part) => string + "-" + str(part))
+    target = prefix
+    for num in nums.pos() {
+      assert(type(num) == int, message: "nums 中的每个元素必须是整数")
+      target += "-" + str(num)
+    }
   }
-  assert(_anchor-series.get().keys().contains(target), message: "Anchor ID '" + target + "' 不存在")
-
   let result = query(metadata.where(value: target))
   if result.len() == 0 {
     none

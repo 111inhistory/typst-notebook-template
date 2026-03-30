@@ -7,3 +7,7 @@ target/
 
 #ignore vscode configurational files
 .vscode/
+
+# ignore local tests and temporary probes
+/test*
+/tmp*
