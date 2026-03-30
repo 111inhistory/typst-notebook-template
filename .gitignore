@@ -11,3 +11,4 @@ target/
 # ignore local tests and temporary probes
 /test*
 /tmp*
+old_template/notebook
