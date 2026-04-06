@@ -1,1 +1,2 @@
-#import "/stylings/lists.typ": apply-settings, default-settings
+#import "/elements/elements.typ": *
+#import "/theme/notebook.typ": notebook-theme

@@ -7,6 +7,8 @@ target/
 
 #ignore vscode configurational files
 .vscode/
+__pycache__/
+*.pyc
 
 # ignore local tests and temporary probes
 /test*
