@@ -9,6 +9,30 @@
 // Counts block-indent bullet list instances.
 #let block-indent-list-counter = counter("_block-indent-list")
 
+/// Resolve optional connector settings for block-indent renderers.
+/// - connector (dictionary | none): Connector configuration or explicit none.
+/// -> dictionary
+#let resolve-connector-state(connector) = {
+  if connector == none {
+    return (
+      enabled: false,
+      position: 0pt,
+      stroke: none,
+    )
+  }
+
+  assert(
+    type(connector) == dictionary,
+    message: "connector 必须是 dictionary 或 none，实际为 " + repr(type(connector)),
+  )
+
+  (
+    enabled: connector.at("enabled"),
+    position: connector.at("position"),
+    stroke: connector.at("stroke"),
+  )
+}
+
 /// Render a single block-indent row with an optional connector slot.
 /// - prefix (str): Anchor prefix for the current list instance.
 /// - index (int): Zero-based item index within the current list instance.
@@ -54,7 +78,10 @@
       let baseline-pos = body-anc-findpos(index)
       let numbering-pos = num-anc-findpos(index)
       // Move the label down until its bottom touches the measured first-line baseline.
-      v(baseline-pos.y - numbering-pos.y - measure(label).height)
+      let v-spacing = if numbering-pos.page == baseline-pos.page {
+        baseline-pos.y - numbering-pos.y - measure(label).height
+      } else { 0pt }
+      v(v-spacing)
       label
     }]
   ])
@@ -243,7 +270,7 @@
   let indent = it.indent
   let body-indent = it.body-indent
   let numbering-pattern = it.numbering
-  let connector = settings.connector
+  let connector = resolve-connector-state(settings.connector)
   let post-numbering = settings.post-numbering
 
   set par(spacing: item-spacing)
@@ -296,8 +323,8 @@
     )
   }
 
-  let connector-left-gap-width = indent - connector.position
-  let connector-right-gap-width = connector.position
+  let connector-left-gap-width = if connector.enabled { indent - connector.position } else { indent }
+  let connector-right-gap-width = if connector.enabled { connector.position } else { 0pt }
   let columns = (
     connector-left-gap-width,
     0pt,
@@ -321,7 +348,7 @@
   let indent = it.indent
   let body-indent = it.body-indent
   let marker-pattern = it.marker
-  let connector = settings.connector
+  let connector = resolve-connector-state(settings.connector)
   let marker-align = settings.marker-align
 
   block-indent-list-counter.step()
@@ -359,8 +386,8 @@
       i < it.children.len() - 1,
     )
   }
-  let connector-left-gap-width = indent - connector.position
-  let connector-right-gap-width = connector.position
+  let connector-left-gap-width = if connector.enabled { indent - connector.position } else { indent }
+  let connector-right-gap-width = if connector.enabled { connector.position } else { 0pt }
   let columns = (
     connector-left-gap-width,
     0pt,
@@ -377,7 +404,7 @@
 }
 
 /// Dispatch table keyed by renderer type name.
-#let renderer-table = (
+#let renderers = (
   block-indent: (
     enum: block-indent-enum,
     list: block-indent-list,
