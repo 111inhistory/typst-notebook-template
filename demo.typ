@@ -1,4 +1,5 @@
 #import "lib.typ": notebook-theme
+#import "typing-utils.typ": *
 
 #show: notebook-theme
 
@@ -169,10 +170,70 @@ $ <eq-integral>
 从而让你在调整样式后快速回归检查视觉结果与编号行为。
 
 
-= 第二章测试
+= 跨章节编号测试
 
 $
   f(x) & = integral_0^x (2t + 1) dif t \
-       & = x^2 + x \
-  "f(x)是一个积分(2t+1)的函数"
+       & = x^2 + x
 $
+
+$
+  vt(a) times vt(b) = epsilon_(i j k) a_i b_j vt(e_k)
+$
+
+#figure(
+  kind: "image",
+  rect(
+    width: 100%,
+    height: 5cm,
+    radius: 6pt,
+    fill: rgb("#f2efe8"),
+    stroke: (paint: luma(75%), thickness: 0.8pt),
+  ),
+  caption: [版式占位图，用于测试图片题注、编号与引用。],
+)
+
+#figure(
+  kind: "table",
+  table(
+    columns: (1fr, 1fr, 1fr),
+    align: center + horizon,
+    stroke: (paint: luma(70%), thickness: 0.6pt),
+    table.header([指标], [数值], [备注]),
+    [页边距], [1.91 cm], [左右一致],
+    [正文字号], [12 pt], [衬线字体],
+    [代码字号], [10 pt], [等宽字体],
+    [段落首缩], [2 em], [全文启用],
+  ),
+  caption: [模板关键参数示例表。],
+)
+
+#figure(
+  kind: "table",
+  table(
+    columns: (1fr, 1fr, 1fr),
+    align: center + horizon,
+    stroke: (paint: luma(70%), thickness: 0.6pt),
+    table.header([指标], [数值], [备注]),
+    [页边距], [1.91 cm], [左右一致],
+    [正文字号], [12 pt], [衬线字体],
+    [代码字号], [10 pt], [等宽字体],
+    [段落首缩], [2 em], [全文启用],
+  ),
+  caption: [模板关键参数示例表。],
+)
+
+#figure(
+  kind: "table",
+  table(
+    columns: (1fr, 1fr, 1fr),
+    align: center + horizon,
+    stroke: (paint: luma(70%), thickness: 0.6pt),
+    table.header([指标], [数值], [备注]),
+    [页边距], [1.91 cm], [左右一致],
+    [正文字号], [12 pt], [衬线字体],
+    [代码字号], [10 pt], [等宽字体],
+    [段落首缩], [2 em], [全文启用],
+  ),
+  caption: [模板关键参数示例表。],
+)

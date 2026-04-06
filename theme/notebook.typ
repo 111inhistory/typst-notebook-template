@@ -1,6 +1,6 @@
 #import "/elements/elements.typ": *
 #import "/utils/numbly-utils.typ": *
-#import "/utils/size-utils.typ": 五号, 小四
+#import "/utils/size-utils.typ": 五号, 小二, 三号, 小三, 四号
 #import "/typing-utils.typ": char-replace
 #import "@preview/hydra:0.6.2": hydra
 #import "@preview/zebraw:0.5.5": zebraw, zebraw-init
@@ -105,7 +105,7 @@
 
   set par(
     first-line-indent: (amount: 2em, all: true),
-    spacing: 0.65em,
+    spacing: 1.2em,
     justify: true,
     leading: 0.65em,
   )
@@ -115,8 +115,23 @@
     supplement: "章节",
   )
 
+  show heading.where(level: 1): set text(
+    size: 小二,
+    weight: "bold",
+  )
+  show heading.where(level: 2): set text(
+    size: 三号,
+    weight: "bold",
+  )
+  show heading.where(level: 3): set text(
+    size: 四号,
+    weight: "bold",
+  )
+
   show heading.where(level: 1): it => [
     #counter(math.equation).update(0)
+    #counter(figure.where(kind: "image")).update(0)
+    #counter(figure.where(kind: "table")).update(0)
     #it
   ]
 
@@ -170,7 +185,7 @@
   show: zebraw-init.with(..notebook-code-block-style)
 
   show math.equation: set text(
-    features: ("cv01",),
+    features: ("cv01",), // solve some strange glyph issues, like emptyset symbol
     font: ("New Computer Modern Math", "Source Han Serif SC"),
     weight: 500,
     cjk-latin-spacing: auto

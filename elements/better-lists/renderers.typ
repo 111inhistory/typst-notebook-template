@@ -1,3 +1,4 @@
+/// Renderer implementations for better-lists element variants.
 #import "/utils/anchor.typ": anchor-helper
 #import "/utils/content-utils.typ": sequence, split-first-paragraph
 

@@ -34,6 +34,8 @@
 
 #let cases(..args) = math.cases(..args.named(), ..args.pos().map(math.display))
 
+#let vfrac(nom, denom) = math.frac(nom, denom, style: "vertical")
+
 #let because = {
   set text(size: 1.35em)
   math.because
