@@ -31,9 +31,11 @@
   let reached-rest = false
 
   for part in body.children {
-    if not reached-rest and part.func() == parbreak {
+    // Tight nested lists are emitted as trailing `item` nodes without a parbreak.
+    let starts-rest = part.func() == parbreak or repr(part.func()) == "item"
+    if not reached-rest and starts-rest {
       reached-rest = true
-      rest = parbreak()
+      rest = if part.func() == parbreak { parbreak() } else { part }
     } else if reached-rest {
       rest += part
     } else {
@@ -42,4 +44,21 @@
   }
 
   (first: first, rest: rest)
+}
+
+/// Checks whether the given content contains any content whose func() equals the given func.
+/// - body (content): The content to be checked.
+/// - func (string): The function to look for.
+/// -> boolean
+#let has-func(body, func) = {
+  if body.func() == sequence {
+    for i in body.children {
+      if has-func(i, func) {
+        return true
+      }
+    }
+  } else if body.func() == func {
+    return true
+  }
+  return false
 }

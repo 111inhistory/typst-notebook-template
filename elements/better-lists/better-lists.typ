@@ -163,7 +163,8 @@
 #let better-lists(settings) = doc => {
   let resolved = modify-dict(default-list-settings, settings)
   assert(
-    resolved.enum.at("post-numbering") == none or type(resolved.enum.at("post-numbering")) == function,
+    resolved.enum.at("post-numbering") == none
+      or type(resolved.enum.at("post-numbering")) == function,
     message: "`enum.post-numbering` should be function or none。",
   )
 

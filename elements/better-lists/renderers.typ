@@ -4,11 +4,59 @@
 
 // Tracks the current parent numbering path.
 // `enum` stores real numbers, while `list` uses `0` as a placeholder.
-#let parents = state("_list-enum-internal", ())
+#let parents = state("__list-enum-internal", ())
 // Counts block-indent enum list instances.
 #let block-indent-enum-counter = counter("_block-indent-enum")
 // Counts block-indent bullet list instances.
 #let block-indent-list-counter = counter("_block-indent-list")
+
+/// Collect trailing tight nested items emitted as bare `item` nodes.
+#let trailing-items(rest) = {
+  if rest == none {
+    return none
+  }
+
+  if repr(rest.func()) == "item" {
+    return (rest,)
+  }
+
+  if rest.func() != sequence {
+    return none
+  }
+
+  let items = ()
+  for part in rest.children {
+    if repr(part.func()) == "item" {
+      items.push(part)
+    } else if part.func() != [ ].func() {
+      return none
+    }
+  }
+
+  if items.len() == 0 { none } else { items }
+}
+
+/// Rebuild trailing tight nested items into an explicit list container.
+#let rebuild-trailing-items(rest, kind) = {
+  let items = trailing-items(rest)
+  if items == none {
+    return rest
+  }
+
+  let rebuilt = items.map(item => {
+    if kind == "enum" {
+      enum.item(item.body)
+    } else {
+      list.item(item.body)
+    }
+  })
+
+  if kind == "enum" {
+    enum(..rebuilt)
+  } else {
+    list(..rebuilt)
+  }
+}
 
 /// Resolve optional connector settings for block-indent renderers.
 /// - connector (dictionary | none): Connector configuration or explicit none.
@@ -152,17 +200,22 @@
       body-indent + measure(num).width
     } else { indent - body-indent }
     let body = if it.tight {
-      text(
-        {
-          h(indent)
-          h(-left-back-len)
-          num
-          h(body-indent)
-          split.first
-        },
-        cjk-latin-spacing: none,
-      )
-      split.rest
+      {
+        // Nested tight items still need the current numbering path.
+        parents.update(arr => arr + (number,))
+        text(
+          {
+            h(indent)
+            h(-left-back-len)
+            num
+            h(body-indent)
+            split.first
+          },
+          cjk-latin-spacing: none,
+        )
+        rebuild-trailing-items(split.rest, "enum")
+        parents.update(arr => arr.slice(0, -1))
+      }
     } else {
       parents.update(arr => arr + (number,))
       {
@@ -180,7 +233,7 @@
           ],
           first-line-indent: (all: true, amount: indent),
         )
-        split.rest
+        rebuild-trailing-items(split.rest, "enum")
       }
       parents.update(arr => arr.slice(0, -1))
     }
@@ -222,17 +275,22 @@
       indent - body-indent
     }
     let body = if it.tight {
-      text(
-        {
-          h(indent)
-          h(-left-back-len)
-          marker
-          h(body-indent)
-          split.first
-        },
-        cjk-latin-spacing: none,
-      )
-      split.rest
+      {
+        // Nested tight items still need the current bullet depth.
+        parents.update(arr => arr + (0,))
+        text(
+          {
+            h(indent)
+            h(-left-back-len)
+            marker
+            h(body-indent)
+            split.first
+          },
+          cjk-latin-spacing: none,
+        )
+        rebuild-trailing-items(split.rest, "list")
+        parents.update(arr => arr.slice(0, -1))
+      }
     } else {
       parents.update(arr => arr + (0,))
       {
@@ -250,7 +308,7 @@
           ],
           first-line-indent: (all: true, amount: indent),
         )
-        split.rest
+        rebuild-trailing-items(split.rest, "list")
       }
       parents.update(arr => arr.slice(0, -1))
     }
@@ -324,7 +382,9 @@
     )
   }
 
-  let connector-left-gap-width = if connector.enabled { indent - connector.position } else { indent }
+  let connector-left-gap-width = if connector.enabled {
+    indent - connector.position
+  } else { indent }
   let connector-right-gap-width = if connector.enabled { connector.position } else { 0pt }
   let columns = (
     connector-left-gap-width,
@@ -387,7 +447,9 @@
       i < it.children.len() - 1,
     )
   }
-  let connector-left-gap-width = if connector.enabled { indent - connector.position } else { indent }
+  let connector-left-gap-width = if connector.enabled {
+    indent - connector.position
+  } else { indent }
   let connector-right-gap-width = if connector.enabled { connector.position } else { 0pt }
   let columns = (
     connector-left-gap-width,

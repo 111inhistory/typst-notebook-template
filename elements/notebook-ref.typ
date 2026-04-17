@@ -5,7 +5,7 @@
   fill_color: rgb("#f1f4f6"),
   stroke_color: rgb("#d2dde3"),
 ) = context {
-  let a = state("bib").final()
+  let a = state("__bib").final()
   if it.element == none and (a == none or not a.keys().contains(str(it.target))) {
     box(
       inset: (x: 0.22em, y: 0.04em),

@@ -23,7 +23,7 @@
 #let load-bib(..args) = context {
   import "@preview/citegeist:0.2.0": load-bibliography
   let a = read(..args)
-  state("bib", ()).update(
+  state("__bib", ()).update(
     arr => if arr == none {
       load-bibliography(a)
     } else {
@@ -33,8 +33,6 @@
 }
 
 #let cases(..args) = math.cases(..args.named(), ..args.pos().map(math.display))
-
-#let vfrac(nom, denom) = math.frac(nom, denom, style: "vertical")
 
 #let because = {
   set text(size: 1.35em)

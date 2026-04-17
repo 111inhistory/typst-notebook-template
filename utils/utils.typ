@@ -93,3 +93,23 @@
   }
   return res
 }
+
+/// Merge named arguments into an arguments object.
+/// Positional arguments are preserved.
+#let merge-args(args, mod) = {
+  assert(
+    type(args) == arguments,
+    message: "`args` must be arguments, found " + repr(type(args)),
+  )
+  arguments(..args.pos(), ..merge-dict(args.named(), mod))
+}
+
+/// Modify named arguments in an arguments object.
+/// Positional arguments are preserved.
+#let modify-args(args, mod) = {
+  assert(
+    type(args) == arguments,
+    message: "`args` must be arguments, found " + repr(type(args)),
+  )
+  arguments(..args.pos(), ..modify-dict(args.named(), mod))
+}

@@ -1,8 +1,8 @@
 #let notebook-link(
   it,
-  text_color: rgb("#2b5f75"),
-  underline_color: rgb("#6b95a8"),
-  accent_background: rgb("#eef5f7"),
+  text_color: black,
+  underline_color: rgb("#14516e"),
+  accent_background: rgb("#c4e7f0"),
 ) = {
   box(
     inset: (x: 0.08em, y: 0em),
@@ -12,8 +12,7 @@
   )[
     #set text(fill: text_color, weight: "medium")
     #underline(
-      offset: 1.8pt,
-      stroke: (thickness: 0.55pt, paint: underline_color),
+      stroke: underline_color,
       it,
     )
   ]

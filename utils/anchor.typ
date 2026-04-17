@@ -1,6 +1,6 @@
 // Provide Anchor API for certain usage
 
-#let _anchor-series = state("_anchor-series", (:))
+#let _anchor-series = state("__anchor-series", (:))
 
 /// Create an anchor with specified prefix and number. `prefix` should be a non-empty string, and `nums` should be an array of integers.
 /// - prefix (str): The prefix of the anchor ID, should be a non-empty string.
