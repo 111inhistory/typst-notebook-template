@@ -43,11 +43,11 @@
 #let get-chinese-font-size(name) = {
   assert(
     type(name) == str,
-    message: "字号名称必须是字符串，实际为 " + repr(type(name)),
+    message: "font size name must be a string, found " + repr(type(name)),
   )
   assert(
     name in chinese-font-sizes,
-    message: "未定义的中文字号：" + name,
+    message: "undefined Chinese font size: " + name,
   )
   chinese-font-sizes.at(name)
 }

@@ -2,11 +2,11 @@
 #let frames(style, ..definitions) = {
   assert(
     type(style) == function,
-    message: "frame style 必须是 function，实际为 " + repr(type(style)),
+    message: "frame style must be a function, found " + repr(type(style)),
   )
   assert(
     definitions.pos() == (),
-    message: "frames 只接受命名 frame 定义。",
+    message: "frames only accepts named frame definitions.",
   )
 
   let constructors = (:)
@@ -16,13 +16,13 @@
     } else {
       (definition,)
     }
-    assert(args.len() > 0, message: "frame 定义必须至少包含 supplement。")
+    assert(args.len() > 0, message: "frame definition must include at least a supplement.")
 
     let supplement = args.at(0)
     let accent-color = args.at(1, default: rgb("#4f86a8"))
     assert(
       type(accent-color) == color,
-      message: "frame accent color 必须是 color，实际为 " + repr(type(accent-color)),
+      message: "frame accent color must be a color, found " + repr(type(accent-color)),
     )
 
     constructors.insert(kind, (..title-and-tags, body) => {

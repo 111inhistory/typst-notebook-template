@@ -26,7 +26,7 @@
 #let clone-dict(value) = {
   assert(
     type(value) == dictionary,
-    message: "clone-dict 只接受 dictionary，实际为 " + repr(type(value)),
+    message: "clone-dict only accepts a dictionary, found " + repr(type(value)),
   )
   _clone-value(value)
 }

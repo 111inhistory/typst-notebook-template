@@ -163,7 +163,7 @@
   assert(
     resolved.enum.at("post-numbering") == none
       or type(resolved.enum.at("post-numbering")) == function,
-    message: "`enum.post-numbering` should be function or none。",
+    message: "`enum.post-numbering` must be a function or none.",
   )
 
   let set-settings = build-set-settings(resolved)

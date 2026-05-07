@@ -167,7 +167,7 @@
   } else {
     assert(
       type(settings.connector) == dictionary,
-      message: "connector 必须是 dictionary 或 none，实际为 " + repr(type(settings.connector)),
+      message: "connector must be a dictionary or none, found " + repr(type(settings.connector)),
     )
     settings.connector
   }

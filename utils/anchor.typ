@@ -45,7 +45,7 @@
   } else if result.len() == 1 {
     result.at(0)
   } else {
-    panic("multiple metadata entries have the same Anchor ID '" + target + "'，please check your code to ensure each Anchor ID is unique")
+    panic("multiple metadata entries have the same Anchor ID '" + target + "', please ensure each Anchor ID is unique")
   }
 }
 
@@ -73,7 +73,7 @@
   } else if result.len() == 1 {
     result.at(0).location().position()
   } else {
-    panic("multiple metadata entries have the same Anchor ID '" + target + "'，please check your code to ensure each Anchor ID is unique")
+    panic("multiple metadata entries have the same Anchor ID '" + target + "', please ensure each Anchor ID is unique")
   }
 }
 
