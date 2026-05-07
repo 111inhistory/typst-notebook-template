@@ -32,29 +32,19 @@
         title = title-and-tags.pos().first()
         tags = title-and-tags.pos().slice(1)
       }
-      let caption-body = if title not in (none, [], "") {
-        title
-      } else if tags.len() > 0 {
-        tags.join([、])
-      } else {
-        []
-      }
-
-      {
-        show figure.where(kind: kind): it => it.body
-        figure(
-          kind: kind,
-          supplement: supplement,
-          caption: caption-body,
-          {
-            context {
-              let number = counter(figure.where(kind: kind)).display()
-              style(title, tags, body, supplement, number, accent-color)
-            }
-          },
-          ..title-and-tags.named(),
-        )
-      }
+      figure(
+        kind: kind,
+        supplement: supplement,
+        caption: none,
+        outlined: false,
+        {
+          context {
+            let number = counter(figure.where(kind: kind)).display()
+            style(title, tags, body, supplement, number, accent-color)
+          }
+        },
+        ..title-and-tags.named(),
+      )
     })
   }
 
