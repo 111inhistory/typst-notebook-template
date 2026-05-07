@@ -81,6 +81,7 @@
       fill: body-fill,
       inset: (left: 0.75em, right: 0.5em, y: 0.5em),
       align: left,
+      breakable: true,
       body-cell,
     ),
   )
