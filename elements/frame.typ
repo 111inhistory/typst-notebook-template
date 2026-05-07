@@ -82,9 +82,9 @@
 
     styled-doc = {
       show figure.where(kind: kind): it => {
-        show block: set block(breakable: true)
-        show grid.cell: set grid.cell(breakable: true)
-        show table.cell: set table.cell(breakable: true)
+        set block(breakable: true)
+        set grid.cell(breakable: true)
+        set table.cell(breakable: true)
         let data = it.body.value
         context {
           let number = counter(figure.where(kind: kind)).display()
