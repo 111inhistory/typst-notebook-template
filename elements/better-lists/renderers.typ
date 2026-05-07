@@ -58,6 +58,15 @@
   }
 }
 
+/// Apply text top-edge only to the first paragraph of a block-indent item.
+#let render-block-indent-body(body) = {
+  let split = split-first-paragraph(body)
+  text(split.first, top-edge: "ascender")
+  if split.rest != none {
+    split.rest
+  }
+}
+
 /// Resolve optional connector settings for block-indent renderers.
 /// - connector (dictionary | none): Connector configuration or explicit none.
 /// -> dictionary
@@ -200,40 +209,38 @@
       body-indent + measure(num).width
     } else { indent - body-indent }
     let body = if it.tight {
-      {
-        // Nested tight items still need the current numbering path.
-        parents.update(arr => arr + (number,))
-        text(
-          {
-            h(indent)
-            h(-left-back-len)
-            num
-            h(body-indent)
-            split.first
-          },
-          cjk-latin-spacing: none,
-        )
-        rebuild-trailing-items(split.rest, "enum")
-        parents.update(arr => arr.slice(0, -1))
-      }
+      panic("first-line-indent does not support tight list/enum")
+      // {
+      //   // Nested tight items still need the current numbering path.
+      //   parents.update(arr => arr + (number,))
+      //   set text(cjk-latin-spacing: none)
+      //   {
+      //     h(indent)
+      //     h(-left-back-len)
+      //     num
+      //     h(body-indent)
+      //     split.first
+      //   }
+      //   set text(cjk-latin-spacing: auto)
+      //   rebuild-trailing-items(split.rest, "enum")
+      //   parents.update(arr => arr.slice(0, -1))
+      // }
     } else {
       parents.update(arr => arr + (number,))
       {
         par(
-          [
-            #text(
-              {
-                h(-left-back-len)
-                num
-                h(body-indent)
-                split.first
-              },
-              cjk-latin-spacing: none,
-            )
-          ],
           first-line-indent: (all: true, amount: indent),
-        )
-        rebuild-trailing-items(split.rest, "enum")
+        )[
+          #set text(cjk-latin-spacing: none)
+          #{
+            h(-left-back-len)
+            num
+            h(body-indent)
+            split.first
+          }
+        ]
+        set par(first-line-indent: (amount: indent, all: true))
+        split.rest
       }
       parents.update(arr => arr.slice(0, -1))
     }
@@ -308,7 +315,8 @@
           ],
           first-line-indent: (all: true, amount: indent),
         )
-        rebuild-trailing-items(split.rest, "list")
+        set par(first-line-indent: (amount: indent, all: true))
+        split.rest
       }
       parents.update(arr => arr.slice(0, -1))
     }
@@ -364,7 +372,7 @@
     num += h(body-indent)
     let body = {
       parents.update(arr => arr + (number,))
-      child.body
+      render-block-indent-body(child.body)
       parents.update(arr => arr.slice(0, -1))
     }
     number += delta
@@ -431,7 +439,7 @@
   for (i, child) in it.children.enumerate() {
     let body = {
       parents.update(arr => arr + (0,))
-      child.body
+      render-block-indent-body(child.body)
       parents.update(arr => arr.slice(0, -1))
     }
     grid-parts += render-block-indent-row(

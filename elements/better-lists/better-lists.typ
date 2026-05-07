@@ -2,7 +2,7 @@
 /// Currently, cross-page alignment between the numbering and body text is not supported.
 /// Firstline indentation is not supported for `tight` list/enum, partially due to the limitation of Typst, which can't get current styling parameters.
 #import "/utils/numbly-utils.typ": partial-display
-#import "/utils/utils.typ": merge-dict, modify-dict
+#import "/utils/common.typ": merge-dict, modify-dict
 #import "./renderers.typ": renderers
 
 /// Default connector settings for block-indent rendering.

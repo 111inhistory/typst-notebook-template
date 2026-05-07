@@ -1,27 +1,19 @@
-#import "lib.typ": notebook-theme1
+#import "lib.typ": notebook-theme, undergraduate-thesis-theme
 #import "utils/typing-utils.typ": *
 
 #import "@preview/physica:0.9.8": *
-#import "@preview/frame-it:2.0.0": frames
-#import "@preview/marginalia:0.3.1": note, notefigure, wideblock
 
-#let (definition, example, remark) = frames(
-  definition: ("定义", rgb("#4f86a8")),
-  example: ("例", rgb("#6d9674")),
-  remark: ("注", rgb("#b58a48")),
+#show: undergraduate-thesis-theme.with(
+  title: [笔记模板演示],
 )
-
-#show: notebook-theme1
 
 #set page(numbering: "I")
 #outline()
 
 #pagebreak()
 
-#outline(title: "图表目录", target: figure)
-
-#set page(numbering: "1")
 #counter(page).update(1)
+#set page(numbering: "1")
 
 = 笔记模板演示
 
@@ -42,28 +34,6 @@
 
 这一段同时用于交叉引用测试。后文会出现 @eq-energy、@eq-wave、
 @fig-layout 与 @tbl-style，用于核对编号与引用文本是否正常。
-
-== 边注与框环境
-
-这一段用于测试边注栏。#note[边注适合放补充说明、术语来源、
-  阅读提醒或简短推导，不打断正文主线。]<note-margin-demo>
-正文继续排版时，边注应保持在右侧注栏内，并避免与相邻边注重叠。
-这里引用刚才的边注 @note-margin-demo，用于确认边注标签引用正常。
-
-#definition[群][代数结构][
-  群是一个集合与一个二元运算组成的结构。该运算满足结合律，
-  并且存在单位元与每个元素对应的逆元。
-]
-
-#example[整数加法][基础例子][
-  整数集合 $ZZ$ 在加法下构成群。单位元是 $0$，
-  任意整数 $a$ 的逆元是 $-a$。
-]
-
-#remark[][排版观察][
-  框环境用于定义、例题、提示和局部结论。标题栏使用低饱和色，
-  正文区域保留浅色背景，便于在屏幕阅读时快速扫视。
-]
 
 === 脚注
 

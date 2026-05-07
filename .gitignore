@@ -14,3 +14,10 @@ __pycache__/
 /test*
 /tmp*
 old_template/notebook
+
+# ignore work in progress files
+*.wip
+
+*.md
+
+!AGENTS.md

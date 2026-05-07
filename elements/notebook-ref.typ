@@ -1,4 +1,4 @@
-#let notebook_ref(
+#let notebook-ref(
   it,
   text_color: rgb("#2f5568"),
   underline_stroke: (thickness: 0.5pt, paint: rgb("#88a6b4")),
