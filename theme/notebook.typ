@@ -1,7 +1,6 @@
 #import "/elements/elements.typ": *
 // #import "/utils/hook-utils.typ.wip": nested-elem-set
 #import "/utils/numbly-utils.typ": *
-#import "/utils/size-utils.typ": 三号, 五号, 四号, 小三, 小二
 #import "/utils/typing-utils.typ": char-replace
 #import "@preview/hydra:0.6.2": hydra
 #import "@preview/zebraw:0.5.5": zebraw, zebraw-init

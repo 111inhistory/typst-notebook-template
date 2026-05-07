@@ -1,6 +1,5 @@
 /// An enhanced list/enum styling module for Typst, providing more accurate numbering alignment, flexible connector rendering, and improved support for loose lists.
 /// Currently, cross-page alignment between the numbering and body text is not supported.
-/// Firstline indentation is not supported for `tight` list/enum, partially due to the limitation of Typst, which can't get current styling parameters.
 #import "/utils/numbly-utils.typ": partial-display
 #import "/utils/common.typ": merge-dict, modify-dict
 #import "./renderers.typ": renderers
@@ -11,7 +10,6 @@
 /// A value equal to `indentation` places it at the far left edge.
 #let default-connector-settings = (
   enabled: false,
-  baseline-offset: 0.65em,
   position: 0.9em,
   stroke: (paint: luma(65%), thickness: 0.75pt, dash: (array: (4pt, 5pt), phase: 4pt)),
 )
