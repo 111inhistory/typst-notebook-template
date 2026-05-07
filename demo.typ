@@ -1,11 +1,11 @@
-#import "lib.typ": notebook-theme1
+#import "lib.typ": notebook-theme1, frames, notebook-frame-style
 #import "utils/typing-utils.typ": *
 
 #import "@preview/physica:0.9.8": *
-#import "@preview/frame-it:2.0.0": frames
 #import "@preview/marginalia:0.3.1": note, notefigure, wideblock
 
 #let (definition, example, remark) = frames(
+  notebook-frame-style,
   definition: ("定义", rgb("#4f86a8")),
   example: ("例", rgb("#6d9674")),
   remark: ("注", rgb("#b58a48")),

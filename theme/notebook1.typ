@@ -5,7 +5,6 @@
 #import "@preview/hydra:0.6.2": hydra
 #import "@preview/zebraw:0.5.5": zebraw, zebraw-init
 #import "@preview/cjk-spacer:0.2.0": cjk-spacer
-#import "@preview/frame-it:2.0.0": frame-style
 #import "@preview/marginalia:0.3.1" as marginalia
 
 #let western-close-punc-regex = regex(
@@ -119,9 +118,6 @@
     },
   )
   show: marginalia.setup.with(..marginalia-config)
-  // Allow frame-it figures to split before grid content overflows.
-  show figure.where(kind: "frame"): set block(breakable: true)
-  show: frame-style(notebook-frame-style)
 
   /// Text related
   // Keep `!=` intact so text replacement rules can still match it.
