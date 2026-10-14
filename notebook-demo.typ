@@ -1,19 +1,28 @@
-#import "lib.typ": notebook-theme, undergraduate-thesis-theme
+#import "lib.typ": notebook-theme, notebook-palette, notebook-note as note, notebook-notefigure as notefigure, frames, frame-style, notebook-frame-style
 #import "utils/typing-utils.typ": *
 
 #import "@preview/physica:0.9.8": *
+#import "@preview/marginalia:0.3.1": wideblock
 
-#show: undergraduate-thesis-theme.with(
-  title: [笔记模板演示],
+#let frame-definitions = (
+  definition: ("定义", notebook-palette.accent),
+  example: ("例", notebook-palette.example),
+  remark: ("注", notebook-palette.remark),
 )
+#let (definition, example, remark) = frames(..frame-definitions)
+
+#show: notebook-theme
+#show: frame-style(notebook-frame-style, ..frame-definitions)
 
 #set page(numbering: "I")
 #outline()
 
 #pagebreak()
 
-#counter(page).update(1)
+#outline(title: "图表目录", target: figure)
+
 #set page(numbering: "1")
+#counter(page).update(1)
 
 = 笔记模板演示
 
@@ -26,7 +35,7 @@
 这一段用于观察正文的首行缩进、两端对齐、自动断字、中文与 English 混排、
 字重配置与基线协调。这里顺带放入 *强调文本*、#strong[强强调文本]、
 #underline[下划线文本]、`inline code` 与
-#link("https://typst.app/docs")[Typst 文档链接]。
+#link("https://typst.app/docs")[Typst 文档链接]还有_斜体italic_。
 
 字符替换规则当前也已经接线，因此正文里的 `->`、`=>`、`<-`、`<=`、`!=`
 与 `<=>` 会被自动替换成对应符号。这里给出一段连续示例：
@@ -34,6 +43,28 @@
 
 这一段同时用于交叉引用测试。后文会出现 @eq-energy、@eq-wave、
 @fig-layout 与 @tbl-style，用于核对编号与引用文本是否正常。
+
+== 边注与框环境
+
+这一段用于测试边注栏。#note[边注适合放补充说明、术语来源、
+  阅读提醒或简短推导，不打断正文主线。]<note-margin-demo>
+正文继续排版时，边注应保持在右侧注栏内，并避免与相邻边注重叠。
+这里引用刚才的边注 @note-margin-demo，用于确认边注标签引用正常。
+
+#definition[群][代数结构][
+  群是一个集合与一个二元运算组成的结构。该运算满足结合律，
+  并且存在单位元与每个元素对应的逆元。
+]
+
+#example[整数加法][基础例子][
+  整数集合 $ZZ$ 在加法下构成群。单位元是 $0$，
+  任意整数 $a$ 的逆元是 $-a$。
+]
+
+#remark[][排版观察][
+  框环境用于定义、例题、提示和局部结论。细色条区分类别，
+  标题与正文共用极浅底色，便于阅读而不过度强调边界。
+]
 
 === 脚注
 
@@ -57,7 +88,7 @@
 
 === 有序列表
 
-+ 第一步：读取输入并完成基本校验。
++ 第一步：读取输入并完成基本校验。$display(integral)$
 + 第二步：构建元素树与上下文。
 + 第三步：执行渲染并输出结果。
   + 子步骤：记录耗时。
@@ -68,11 +99,11 @@
 
 - 这一项包含两个段落。
 
-  第二段用于验证松散列表下的段间距、缩进与连接线是否仍然稳定。
+  第二段用于验证松散列表下的段间距、缩进与连接线是否仍然稳定。这边只建议对于长度超过一段的使用松散列表。
 
 - 另一项同样拆成两段。
 
-  这种结构在技术笔记、课程讲义和会议记录中都很常见，因此值得单独回归。
+  这种结构在技术笔记、课程讲义和会议记录中都很常见，因此值得单独回归。主要是用于，保留列表的结构，同时可以像正常写正文一样一段段写下去，除了编写`typst`文件时需要加缩进，但是这很容易。
 
 == 引文与代码
 

@@ -1,4 +1,5 @@
 #import "/elements/elements.typ": better-lists, notebook-inline-code
+#import "/elements/better-lists.typ": default-connector-settings
 #import "/utils/numbly-utils.typ": partial-display
 #import "/utils/size-utils.typ": 三号, 五号, 四号, 小五, 小四
 #import "@preview/numbly:0.1.0": numbly
@@ -10,23 +11,27 @@
     post-numbering: none,
     full: false,
     tight: (
-      type: "first-line-indent",
-      numbering-align: "right",
+      overload: true,
+      number-align: end,
+      connector: default-connector-settings
     ),
     loose: (
-      type: "first-line-indent",
-      numbering-align: "right",
+      overload: true,
+      number-align: end,
+      connector: default-connector-settings
     ),
   ),
   list: (
     marker: ([•], [◦], [▪]),
     tight: (
-      type: "first-line-indent",
-      marker-align: "right",
+      overload: true,
+      marker-align: end,
+      connector: default-connector-settings
     ),
     loose: (
-      type: "first-line-indent",
-      marker-align: "right",
+      overload: true,
+      marker-align: end,
+      connector: default-connector-settings
     ),
   ),
 )

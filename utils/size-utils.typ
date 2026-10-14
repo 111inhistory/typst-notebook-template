@@ -1,5 +1,5 @@
-// Chinese font-size utilities for Typst.
-// Values follow the common DTP convention used by Word and Chinese publishing.
+/// Chinese font-size utilities for Typst.
+/// Values follow the common DTP convention used by Word and Chinese publishing.
 
 #let 初号 = 42pt
 #let 小初 = 36pt

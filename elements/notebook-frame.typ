@@ -1,85 +1,59 @@
 #let notebook-frame-style(title, tags, body, supplement, number, accent-color) = {
   let has-title = title not in (none, [], "")
   let has-number = number not in (none, [], "")
+  let heading-font = ("Source Han Sans SC", "Arial")
+  let surface = accent-color.transparentize(83%)
 
   let title-cell = {
-    set par(first-line-indent: 0pt)
-    set text(
-      font: ("Arial", "HarmonyOS Sans SC"),
-      size: 11pt,
-      weight: "bold",
-      fill: luma(18%),
-    )
-
+    set par(first-line-indent: 0pt, justify: false)
+    set text(font: heading-font, size: 10pt, weight: "semibold", fill: accent-color.darken(15%))
+    supplement
     if has-number {
-      supplement
-      h(0.35em)
+      h(0.3em)
       number
-    } else {
-      supplement
     }
     if has-title {
-      h(0.8em)
-      title
+      h(0.85em)
+      text(title, size: 11pt, weight: "semibold", fill: luma(18%))
     }
   }
 
   let tags-cell = {
-    set par(first-line-indent: 0pt)
-    set text(
-      font: ("Arial", "HarmonyOS Sans SC"),
-      size: 11pt,
-      weight: "medium",
-      fill: luma(42%),
-    )
-
-    if tags.len() > 0 {
-      tags.join([、])
-    } else {
-      []
-    }
+    set par(first-line-indent: 0pt, justify: false)
+    set text(font: heading-font, size: 8.5pt, weight: "regular", fill: luma(48%))
+    tags.join([ · ])
   }
 
   let body-cell = {
-    set par(
-      first-line-indent: 0pt,
-      justify: false,
-    )
+    set par(first-line-indent: 0pt, justify: false)
     align(left, body)
   }
 
-  let title-fill = accent-color.lighten(70%)
-  let body-fill = accent-color.lighten(92%)
-  let border-stroke = 0.75pt + accent-color.darken(10%)
-
+  // The grid owns the accent rail and repeats the heading across page breaks.
   grid(
     inset: 0pt,
-    stroke: border-stroke,
-    fill: body-fill,
+    stroke: none,
+    fill: surface,
     columns: (1fr, auto),
     rows: (auto, auto),
     gutter: 0pt,
+    grid.vline(x: 0, stroke: (paint: accent-color, thickness: 1.8pt, cap: "butt")),
     grid.header(
       repeat: true,
       grid.cell(
-        fill: title-fill,
-        stroke: (right: none),
-        inset: (left: 0.85em, right: 0.5em, y: 0.38em),
+        inset: (left: 1em, right: 0.5em, top: 0.7em, bottom: 0.35em),
         align: left + horizon,
         title-cell,
       ),
       grid.cell(
-        fill: title-fill,
-        stroke: (left: none),
-        inset: (left: 0.5em, right: 0.85em, y: 0.38em),
+        inset: (left: 0.5em, right: 1em, top: 0.7em, bottom: 0.35em),
         align: right + horizon,
         tags-cell,
       ),
     ),
     grid.cell(
       colspan: 2,
-      fill: body-fill,
-      inset: (left: 0.75em, right: 0.5em, y: 0.5em),
+      inset: (x: 1em, top: 0.2em, bottom: 0.75em),
       align: left,
       breakable: true,
       body-cell,

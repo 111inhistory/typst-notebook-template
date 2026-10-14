@@ -113,3 +113,31 @@
   )
   arguments(..args.pos(), ..modify-dict(args.named(), mod))
 }
+
+#let check-valid-dict(sample, ref) = {
+  assert(
+    type(sample) == dictionary,
+    message: "`sample` must be a dictionary, found " + repr(type(sample)),
+  )
+  
+  if type(sample) != dictionary {
+    return false
+  }
+
+  if sample.keys().len() != ref.keys().len() {
+    return false
+  }
+
+  for (key, val) in sample.pairs() {
+    if not key in ref.keys() {
+      return false
+    }
+
+    if type(val) == dictionary and type(ref.at(key)) == dictionary {
+      if not check-valid-dict(val, ref.at(key)) {
+        return false
+      }
+    }
+  }
+  return true
+}

@@ -1,6 +1,6 @@
 #import "/elements/elements.typ": *
 #import "/utils/typing-utils.typ"
 #import "utils/utils.typ"
-#import "/theme/notebook.typ": notebook-theme
-#import "/theme/notebook1.typ": notebook-theme1
+#import "/utils/terms-data.typ": set_
+#import "/theme/notebook.typ": notebook-theme, notebook-palette, notebook-note, notebook-notefigure
 #import "/theme/thesis.typ": undergraduate-thesis-theme

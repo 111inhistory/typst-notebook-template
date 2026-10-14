@@ -15,7 +15,7 @@
     assert(args.len() > 0, message: "frame definition must include at least a supplement.")
 
     let supplement = args.at(0)
-    let accent-color = args.at(1, default: rgb("#4f86a8"))
+    let accent-color = args.at(1, default: rgb("#466b82"))
     assert(
       type(accent-color) == color,
       message: "frame accent color must be a color, found " + repr(type(accent-color)),
@@ -74,7 +74,7 @@
     assert(args.len() > 0, message: "frame definition must include at least a supplement.")
 
     let supplement = args.at(0)
-    let accent-color = args.at(1, default: rgb("#4f86a8"))
+    let accent-color = args.at(1, default: rgb("#466b82"))
     assert(
       type(accent-color) == color,
       message: "frame accent color must be a color, found " + repr(type(accent-color)),

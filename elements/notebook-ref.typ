@@ -20,7 +20,7 @@
       inset: (x: 0.18em, y: 0.02em),
       radius: 0.22em,
       fill: fill_color,
-      stroke: (paint: stroke_color, thickness: 0.4pt),
+      stroke: if stroke_color == none { none } else { (paint: stroke_color, thickness: 0.4pt) },
     )[
       #set text(fill: text_color, weight: "medium")
       #underline(offset: 1.6pt, stroke: underline_stroke, it)
