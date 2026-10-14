@@ -3,7 +3,9 @@
 #import "notebook-link.typ": notebook-link
 #import "notebook-inline-code.typ": notebook-inline-code
 #import "notebook-frame.typ": notebook-frame-style
-#import "frame.typ": frames, frame-style
+#import "frame.typ": frame-style, frames
 #import "notebook-terms.typ": notebook-terms
-#import "math.typ": v-h-frac, math-hook, equation-numbering
-#import "thesis-outline.typ": thesis-outline, thesis-figure-outline, thesis-table-outline
+#import "math.typ": equation-numbering, math-hook, v-h-frac
+#import "thesis-outline.typ": (
+  thesis-figure-outline, thesis-outline, thesis-table-outline,
+)

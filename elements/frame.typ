@@ -12,13 +12,17 @@
     } else {
       (definition,)
     }
-    assert(args.len() > 0, message: "frame definition must include at least a supplement.")
+    assert(
+      args.len() > 0,
+      message: "frame definition must include at least a supplement.",
+    )
 
     let supplement = args.at(0)
     let accent-color = args.at(1, default: rgb("#466b82"))
     assert(
       type(accent-color) == color,
-      message: "frame accent color must be a color, found " + repr(type(accent-color)),
+      message: "frame accent color must be a color, found "
+        + repr(type(accent-color)),
     )
 
     constructors.insert(kind, (..title-and-tags, body) => {
@@ -71,13 +75,17 @@
     } else {
       (definition,)
     }
-    assert(args.len() > 0, message: "frame definition must include at least a supplement.")
+    assert(
+      args.len() > 0,
+      message: "frame definition must include at least a supplement.",
+    )
 
     let supplement = args.at(0)
     let accent-color = args.at(1, default: rgb("#466b82"))
     assert(
       type(accent-color) == color,
-      message: "frame accent color must be a color, found " + repr(type(accent-color)),
+      message: "frame accent color must be a color, found "
+        + repr(type(accent-color)),
     )
 
     styled-doc = {
@@ -88,7 +96,14 @@
         let data = it.body.value
         context {
           let number = counter(figure.where(kind: kind)).display()
-          style(data.title, data.tags, data.body, supplement, number, accent-color)
+          style(
+            data.title,
+            data.tags,
+            data.body,
+            supplement,
+            number,
+            accent-color,
+          )
         }
       }
       styled-doc

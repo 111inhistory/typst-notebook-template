@@ -1,4 +1,11 @@
-#let notebook-frame-style(title, tags, body, supplement, number, accent-color) = {
+#let notebook-frame-style(
+  title,
+  tags,
+  body,
+  supplement,
+  number,
+  accent-color,
+) = {
   let has-title = title not in (none, [], "")
   let has-number = number not in (none, [], "")
   let heading-font = ("Source Han Sans SC", "Arial")
@@ -6,7 +13,12 @@
 
   let title-cell = {
     set par(first-line-indent: 0pt, justify: false)
-    set text(font: heading-font, size: 10pt, weight: "semibold", fill: accent-color.darken(15%))
+    set text(
+      font: heading-font,
+      size: 10pt,
+      weight: "semibold",
+      fill: accent-color.darken(15%),
+    )
     supplement
     if has-number {
       h(0.3em)
@@ -20,7 +32,12 @@
 
   let tags-cell = {
     set par(first-line-indent: 0pt, justify: false)
-    set text(font: heading-font, size: 8.5pt, weight: "regular", fill: luma(48%))
+    set text(
+      font: heading-font,
+      size: 8.5pt,
+      weight: "regular",
+      fill: luma(48%),
+    )
     tags.join([ · ])
   }
 
@@ -37,7 +54,11 @@
     columns: (1fr, auto),
     rows: (auto, auto),
     gutter: 0pt,
-    grid.vline(x: 0, stroke: (paint: accent-color, thickness: 1.8pt, cap: "butt")),
+    grid.vline(x: 0, stroke: (
+      paint: accent-color,
+      thickness: 1.8pt,
+      cap: "butt",
+    )),
     grid.header(
       repeat: true,
       grid.cell(

@@ -17,20 +17,33 @@ def replace_once(source, old, new):
     return source.replace(old, new, 1)
 
 
-def prepare(root, output, backend, terms_module):
+def rewrite_import(source, module, target, remove=()):
+    pattern = re.compile(rf'(?m)^#import[ \t]+"{re.escape(module)}":[ \t]*(\([^)]*\)|[^\r\n]+)')
+    matches = list(pattern.finditer(source))
+    if len(matches) != 1:
+        raise ValueError(f"Expected one import from {module!r}.")
+    match = matches[0]
+    names = match.group(1).strip()
+    if names.startswith("("):
+        names = names[1:-1]
+    items = [item.strip() for item in names.split(",") if item.strip()]
+    for name in remove:
+        if items.count(name) != 1:
+            raise ValueError(f"Expected one import of {name!r} from {module!r}.")
+        items.remove(name)
+    replacement = f'#import "{target}": ' + ", ".join(items)
+    return source[:match.start()] + replacement + source[match.end():]
+
+
+def prepare(root, output, backend, reference_module):
     directory = output / backend
     directory.mkdir(parents=True, exist_ok=True)
     theme = (root / "theme/notebook.typ").read_text(encoding="utf-8")
-    if backend != "plain":
-        theme = '#import "/utils/terms-data.typ": register, get, set_\n' + theme
-        theme = replace_once(
-            theme, "  set terms(tight: false, separator: [：])",
-            '  set terms(tight: false)\n  show: set_("terms", separator: [：])',
-        )
-    if backend == "terms":
-        theme = replace_once(theme, "  better-lists, equation-numbering", "  equation-numbering")
-        theme = f'#import "{terms_module}": better-lists\n' + theme
+    if backend == "reference":
+        theme = rewrite_import(theme, "/elements/elements.typ", "/elements/elements.typ", remove=("better-lists",))
+        theme = f'#import "{reference_module}": better-lists\n' + theme
     elif backend == "carrier":
+        theme = '#import "/utils/terms-data.typ": register, get, set_\n' + theme
         theme = replace_once(
             theme, "  let par-spacing = 0.65em",
             '''  let par-spacing = 0.65em
@@ -43,7 +56,7 @@ def prepare(root, output, backend, terms_module):
         )
     (directory / "notebook-theme.typ").write_text(theme, encoding="utf-8")
     source = (root / "notebook-demo.typ").read_text(encoding="utf-8")
-    source = replace_once(source, '#import "lib.typ": notebook-theme, ', '#import "/lib.typ": ')
+    source = rewrite_import(source, "lib.typ", "/lib.typ", remove=("notebook-theme",))
     source = replace_once(source, '#import "utils/typing-utils.typ"', '#import "/utils/typing-utils.typ"')
     theme_path = (directory / "notebook-theme.typ").relative_to(root).as_posix()
     source = f'#import "/{theme_path}": notebook-theme\n' + source
@@ -138,10 +151,10 @@ def compare_exports(root, output, results):
         overview(root, output, backend, rows)
         rows.sort(key=lambda row: 6 if row["limit"] is None else row["limit"])
         comparisons.extend(compare_pair(root, output, a, b) for a, b in zip(rows, rows[1:]))
-    baseline = next((row for row in results if row["backend"] == "plain" and row["limit"] is None), None)
+    baseline = next((row for row in results if row["backend"] == "default" and row["limit"] is None), None)
     if baseline is not None:
         for row in results:
-            if row["limit"] is None and row["backend"] != "plain":
+            if row["limit"] is None and row["backend"] != "default":
                 comparisons.append(compare_pair(root, output, baseline, row))
     return comparisons
 
@@ -160,11 +173,13 @@ def classify_warnings(stderr):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--backend", nargs="+", choices=("plain", "carrier", "terms"), default=["plain", "carrier", "terms"])
+    parser.add_argument("--backend", nargs="+", choices=("default", "carrier", "reference"), default=["default", "carrier"])
     parser.add_argument("--limits", default="1,2,3,4,5")
-    parser.add_argument("--terms-module", default="/elements/better-lists-set.typ")
+    parser.add_argument("--reference-module", help="Project-absolute path to an optional comparison renderer.")
     parser.add_argument("--output", default="tmp/notebook-convergence")
     args = parser.parse_args()
+    if "reference" in args.backend and args.reference_module is None:
+        parser.error("--reference-module is required for the reference backend.")
     limits = [int(value) for value in args.limits.split(",")]
     if any(value not in range(1, 6) for value in limits):
         parser.error("Limits must be integers from 1 to 5.")
@@ -176,7 +191,7 @@ def main():
     print(version, flush=True)
     print("backend\tlimit\tstatus\tlayout passes\tnon-convergence\twarnings outside marginalia", flush=True)
     for backend in args.backend:
-        directory = prepare(root, output, backend, args.terms_module)
+        directory = prepare(root, output, backend, args.reference_module)
         for limit in [None, *limits]:
             label = "unlimited" if limit is None else str(limit)
             stem = output / f"{backend}-{label}"
@@ -204,7 +219,7 @@ def main():
             other_warnings = sum(not warning["marginalia"] for warning in row["warnings"])
             print(f"{backend}\t{label}\t{'ok' if result.returncode == 0 else 'error'}\t{passes}\t{row['non_convergence']}\t{other_warnings}", flush=True)
     (output / "results.json").write_text(json.dumps(dict(
-        version=version, date=date.today().isoformat(), terms_module=args.terms_module,
+        version=version, date=date.today().isoformat(), reference_module=args.reference_module,
         source_sha256=hashlib.sha256((root / "notebook-demo.typ").read_bytes()).hexdigest(),
         results=results, comparisons=compare_exports(root, output, results),
     ), indent=2), encoding="utf-8")

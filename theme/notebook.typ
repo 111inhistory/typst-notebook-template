@@ -1,7 +1,8 @@
 #import "/elements/elements.typ": (
-  better-lists, equation-numbering, math-hook, notebook-inline-code, notebook-link, notebook-ref, notebook-terms,
-  v-h-frac,
+  better-lists, equation-numbering, math-hook, notebook-inline-code,
+  notebook-link, notebook-ref, notebook-terms, v-h-frac,
 )
+#import "/utils/terms-data.typ": set_
 #import "/utils/numbly-utils.typ": partial-display
 #import "@preview/numbly:0.1.0": numbly
 #import "/utils/typing-utils.typ": char-replace
@@ -36,13 +37,21 @@
 #let notebook-note = marginalia.note.with(
   numbering: notebook-note-numbering,
   anchor-numbering: notebook-note-numbering,
-  text-style: (font: ("Source Han Sans SC", "Charter"), size: 9pt, fill: notebook-palette.ink),
+  text-style: (
+    font: ("Source Han Sans SC", "Charter"),
+    size: 9pt,
+    fill: notebook-palette.ink,
+  ),
 )
 
 #let notebook-notefigure = marginalia.notefigure.with(
   numbering: notebook-note-numbering,
   anchor-numbering: auto,
-  text-style: (font: ("Source Han Sans SC", "Charter"), size: 9pt, fill: notebook-palette.ink),
+  text-style: (
+    font: ("Source Han Sans SC", "Charter"),
+    size: 9pt,
+    fill: notebook-palette.ink,
+  ),
 )
 
 #let western-close-punc-regex = regex(
@@ -166,7 +175,11 @@
         #line(
           length: 25cm,
           angle: 90deg,
-          stroke: (thickness: 0.5pt, paint: notebook-palette.muted.transparentize(45%), dash: (5pt, 3pt)),
+          stroke: (
+            thickness: 0.5pt,
+            paint: notebook-palette.muted.transparentize(45%),
+            dash: (5pt, 3pt),
+          ),
         )
       ]
     },
@@ -189,7 +202,10 @@
     western-close-punc-regex: western-close-punc-regex,
   )
   show: char-replace
-  let notebook-body-font = ((name: "Charter", covers: "latin-in-cjk"), "LXGW WenKai GB")
+  let notebook-body-font = (
+    (name: "Charter", covers: "latin-in-cjk"),
+    "LXGW WenKai GB",
+  )
   let notebook-serif-font = (
     (name: "Charter", covers: "latin-in-cjk"),
     "Source Han Serif SC",
@@ -330,7 +346,11 @@
     fill_color: notebook-palette.inline-code.transparentize(90%),
     stroke_color: notebook-palette.inline-code.transparentize(70%),
   )
-  show raw.where(block: true): it => block(zebraw(it), radius: 0.375em, stroke: gray + 1pt)
+  show raw.where(block: true): it => block(
+    zebraw(it),
+    radius: 0.375em,
+    stroke: gray + 1pt,
+  )
 
   /// Link
   show link: notebook-link.with(
@@ -342,12 +362,16 @@
   /// Ref
   show ref: notebook-ref.with(
     text_color: notebook-palette.reference,
-    underline_stroke: (paint: notebook-palette.underline.darken(40%), thickness: 0.75pt),
+    underline_stroke: (
+      paint: notebook-palette.underline.darken(40%),
+      thickness: 0.75pt,
+    ),
     fill_color: none,
     stroke_color: none,
   )
 
-  set terms(tight: false, separator: [：])
+  set terms(tight: false)
+  show: set_("terms", separator: [：])
   show terms: notebook-terms
 
   /// Emphasize

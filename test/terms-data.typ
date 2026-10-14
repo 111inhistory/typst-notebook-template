@@ -1,4 +1,4 @@
-#import "/utils/terms-data.typ": register, get
+#import "/utils/terms-data.typ": get, register
 #import "/lib.typ": set_
 
 #set page(width: 16cm, height: auto, margin: 1cm)
@@ -7,17 +7,28 @@
 
 #let read-list-tight = get.with("list-tight")
 #let read-enum-loose = get.with("enum-loose")
-#show: register("list-tight", defaults: (size: 10, nested: (paint: red, weight: 400)))
+#show: register("list-tight", defaults: (
+  size: 10,
+  nested: (paint: red, weight: 400),
+))
 #show: register("enum-loose", defaults: (enabled: false))
 
-#let check(title, size, paint, weight, enabled) = read-list-tight(a => read-enum-loose(b => {
-  assert(a == (size: size, nested: (paint: paint, weight: weight)), message: "Namespace values must inherit and merge correctly.")
-  assert(b == (enabled: enabled), message: "Updating one namespace must preserve the other namespace.")
-  block[
-    #text(fill: paint, weight: weight)[#title]
-    #h(0.6em)size = #a.size, beta = #repr(b.enabled)
-  ]
-}))
+#let check(title, size, paint, weight, enabled) = read-list-tight(
+  a => read-enum-loose(b => {
+    assert(
+      a == (size: size, nested: (paint: paint, weight: weight)),
+      message: "Namespace values must inherit and merge correctly.",
+    )
+    assert(
+      b == (enabled: enabled),
+      message: "Updating one namespace must preserve the other namespace.",
+    )
+    block[
+      #text(fill: paint, weight: weight)[#title]
+      #h(0.6em)size = #a.size, beta = #repr(b.enabled)
+    ]
+  }),
+)
 
 = Scoped terms data
 #check("Registered defaults", 10, red, 400, false)
@@ -46,15 +57,25 @@
   #show: set_("list-tight", size: 14)
   #check("Update after safe separator change", 14, blue, 400, true)
   #get("terms", settings => {
-    assert(settings.separator == [ — ], message: "The reserved namespace must expose the visible separator without the carrier.")
+    assert(
+      settings.separator == [ — ],
+      message: "The reserved namespace must expose the visible separator without the carrier.",
+    )
   })
   #context {
     show: set_("terms", separator: terms.separator)
     get("terms", settings => {
-      assert(settings.separator == [ — ], message: "Reusing the current separator must not duplicate its carrier.")
+      assert(
+        settings.separator == [ — ],
+        message: "Reusing the current separator must not duplicate its carrier.",
+      )
     })
     context {
-      assert(terms.separator.children.filter(child => child.func() == metadata).len() == 1, message: "A reused separator must retain exactly one carrier.")
+      assert(
+        terms.separator.children.filter(child => child.func() == metadata).len()
+          == 1,
+        message: "A reused separator must retain exactly one carrier.",
+      )
     }
   }
   / Custom separator: This definition must use an em dash.
@@ -65,19 +86,37 @@
 
 #read-list-tight(a => context {
   let children = terms.separator.children
-  assert(children.slice(0, -1).join() == [：], message: "The visible separator must be preserved.")
-  assert(children.last().func() == metadata, message: "The carrier must be appended as the final metadata element.")
-  assert(children.len() == 2, message: "Repeated updates must replace the carrier instead of accumulating metadata.")
+  assert(
+    children.slice(0, -1).join() == [：],
+    message: "The visible separator must be preserved.",
+  )
+  assert(
+    children.last().func() == metadata,
+    message: "The carrier must be appended as the final metadata element.",
+  )
+  assert(
+    children.len() == 2,
+    message: "Repeated updates must replace the carrier instead of accumulating metadata.",
+  )
   let data = children.last().value.__notebook-terms-data
-  assert(data.overrides.at("list-tight").size == a.size, message: "The carrier must retain the current overrides.")
-  assert(data.registered.keys().sorted() == ("enum-loose", "list-tight"), message: "Separator updates must preserve registrations without registering the reserved namespace.")
+  assert(
+    data.overrides.at("list-tight").size == a.size,
+    message: "The carrier must retain the current overrides.",
+  )
+  assert(
+    data.registered.keys().sorted() == ("enum-loose", "list-tight"),
+    message: "Separator updates must preserve registrations without registering the reserved namespace.",
+  )
 })
 
 #[
   #show: set_("late-registration", value: 42)
   #show: register("late-registration", defaults: (value: 0, inherited: true))
   #get("late-registration", values => {
-    assert(values == (value: 42, inherited: true), message: "Overrides must work before registration.")
+    assert(
+      values == (value: 42, inherited: true),
+      message: "Overrides must work before registration.",
+    )
   })
 ]
 
@@ -87,8 +126,14 @@
   #check("Styled separator / foreign metadata", 16, blue, 400, true)
   #context {
     let children = terms.separator.children
-    assert(children.len() == 3, message: "Updates must preserve foreign metadata without accumulating carriers.")
-    assert(children.at(-2) == metadata("foreign metadata"), message: "Foreign metadata must not be consumed as a carrier.")
+    assert(
+      children.len() == 3,
+      message: "Updates must preserve foreign metadata without accumulating carriers.",
+    )
+    assert(
+      children.at(-2) == metadata("foreign metadata"),
+      message: "Foreign metadata must not be consumed as a carrier.",
+    )
   }
   / Styled separator: The bold arrow must remain visible.
 ]
@@ -99,14 +144,20 @@
   #show: set_("list-tight", nested: (paint: green))
   #check("Empty separator", 20, green, 400, true)
   #context {
-    assert(terms.separator.children.len() == 1, message: "An empty separator must contain only one carrier after repeated updates.")
+    assert(
+      terms.separator.children.len() == 1,
+      message: "An empty separator must contain only one carrier after repeated updates.",
+    )
   }
   / Empty separator: No punctuation should appear between term and description.
 ]
 
 #[
   #set terms(separator: [; ])
-  #show: register("list-tight", defaults: (size: 10, nested: (paint: red, weight: 400)))
+  #show: register("list-tight", defaults: (
+    size: 10,
+    nested: (paint: red, weight: 400),
+  ))
   #show: register("enum-loose", defaults: (enabled: false))
   #check("Native set discards registrations and overrides", 10, red, 400, false)
 ]

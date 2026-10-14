@@ -1,4 +1,7 @@
-#import "lib.typ": notebook-theme, notebook-palette, notebook-note as note, notebook-notefigure as notefigure, frames, frame-style, notebook-frame-style
+#import "lib.typ": (
+  frame-style, frames, notebook-frame-style, notebook-note as note,
+  notebook-notefigure as notefigure, notebook-palette, notebook-theme,
+)
 #import "utils/typing-utils.typ": *
 
 #import "@preview/physica:0.9.8": *

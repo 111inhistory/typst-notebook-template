@@ -13,12 +13,12 @@
     tight: (
       overload: true,
       number-align: end,
-      connector: default-connector-settings
+      connector: default-connector-settings,
     ),
     loose: (
       overload: true,
       number-align: end,
-      connector: default-connector-settings
+      connector: default-connector-settings,
     ),
   ),
   list: (
@@ -26,12 +26,12 @@
     tight: (
       overload: true,
       marker-align: end,
-      connector: default-connector-settings
+      connector: default-connector-settings,
     ),
     loose: (
       overload: true,
       marker-align: end,
-      connector: default-connector-settings
+      connector: default-connector-settings,
     ),
   ),
 )
@@ -102,7 +102,9 @@
   header-left: [大学本科毕业论文（设计）],
   page-numbering: "1",
 ) = {
-  let resolved-header-title = if header-title == auto { title } else { header-title }
+  let resolved-header-title = if header-title == auto { title } else {
+    header-title
+  }
 
   if title != none {
     set document(title: title)
@@ -131,7 +133,10 @@
         #grid(
           columns: (1fr, 1fr),
           align: (left + bottom, right + bottom),
-          [#header-left], if resolved-header-title == none { [] } else { [#resolved-header-title] },
+          [#header-left],
+          if resolved-header-title == none { [] } else {
+            [#resolved-header-title]
+          },
         )
         #v(0.35em)
         #line(length: 100%, stroke: 0.7pt + black)
@@ -187,7 +192,9 @@
   show heading.where(level: 3): it => render-thesis-third-heading(
     it,
   )
-  show heading.where(level: 4): it => panic("Heading level can not exceed level 3")
+  show heading.where(level: 4): it => panic(
+    "Heading level can not exceed level 3",
+  )
 
   set figure(
     numbering: thesis-figure-numbering,

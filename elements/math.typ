@@ -8,7 +8,10 @@
 #let math-state-marker(state) = metadata((__notebook-math-hook-state: state))
 
 #let math-state-from(separator) = {
-  if separator.func() == metadata and "__notebook-math-hook-state" in separator.value {
+  if (
+    separator.func() == metadata
+      and "__notebook-math-hook-state" in separator.value
+  ) {
     return separator.value.__notebook-math-hook-state
   }
   (:)
@@ -36,8 +39,12 @@
       let current-state = math-state-from(terms.separator)
       set terms(separator: original-separator)
       if current-state.at("frac-depth", default: none) == none {
-        let is-nested = has-func(it.num, math.frac) or has-func(it.denom, math.frac)
-        let style = if depth == 0 or is-nested { "vertical" } else { "horizontal" }
+        let is-nested = (
+          has-func(it.num, math.frac) or has-func(it.denom, math.frac)
+        )
+        let style = if depth == 0 or is-nested { "vertical" } else {
+          "horizontal"
+        }
         math.frac(it.num, it.denom, style: style)
       } else {
         it

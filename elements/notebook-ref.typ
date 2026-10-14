@@ -6,7 +6,9 @@
   stroke_color: rgb("#d2dde3"),
 ) = context {
   let a = state("__bib").final()
-  if it.element == none and (a == none or not a.keys().contains(str(it.target))) {
+  if (
+    it.element == none and (a == none or not a.keys().contains(str(it.target)))
+  ) {
     box(
       inset: (x: 0.22em, y: 0.04em),
       radius: 0.22em,
@@ -20,7 +22,9 @@
       inset: (x: 0.18em, y: 0.02em),
       radius: 0.22em,
       fill: fill_color,
-      stroke: if stroke_color == none { none } else { (paint: stroke_color, thickness: 0.4pt) },
+      stroke: if stroke_color == none { none } else {
+        (paint: stroke_color, thickness: 0.4pt)
+      },
     )[
       #set text(fill: text_color, weight: "medium")
       #underline(offset: 1.6pt, stroke: underline_stroke, it)

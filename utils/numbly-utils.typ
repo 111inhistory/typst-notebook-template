@@ -1,5 +1,5 @@
-// This file defines `partial-display` and `full-display` utility function for certain circunstances, 
-// like lists, to use, in order to make up the disability of std `numbering` function, which does not 
+// This file defines `partial-display` and `full-display` utility function for certain circunstances,
+// like lists, to use, in order to make up the disability of std `numbering` function, which does not
 // support partial display of the numbering
 #import "@preview/numbly:0.1.0": numbly
 

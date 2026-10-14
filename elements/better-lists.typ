@@ -3,6 +3,7 @@
 #import "/utils/numbly-utils.typ": partial-display
 #import "/utils/common.typ": merge-dict, modify-dict
 #import "/utils/content-utils.typ": sequence, split-first-paragraph
+#import "/utils/terms-data.typ" as terms-data
 
 /// Default connector settings for block-indent rendering.
 /// `position` is measured from the body-side edge of the indent area.
@@ -13,8 +14,16 @@
   position: 0.9em,
   foot-width: 0.5em,
   threshold: 0.5em,
-  stroke: stroke(paint: luma(65%), thickness: 0.75pt, dash: (array: (4pt, 5pt), phase: 4pt)),
-  foot-stroke: stroke(paint: luma(65%), thickness: 0.75pt, cap: "round", dash: none),
+  stroke: stroke(paint: luma(65%), thickness: 0.75pt, dash: (
+    array: (4pt, 5pt),
+    phase: 4pt,
+  )),
+  foot-stroke: stroke(
+    paint: luma(65%),
+    thickness: 0.75pt,
+    cap: "round",
+    dash: none,
+  ),
 )
 
 /// Global default settings for list styling.
@@ -69,54 +78,14 @@
 /// Only logical start/end are supported; vertical components are discarded.
 /// Other alignment values (including center) are ignored and fall back to end.
 #let normalize-label-align(value) = {
-  assert(type(value) == alignment, message: "Label alignment must be an alignment value.")
+  assert(
+    type(value) == alignment,
+    message: "Label alignment must be an alignment value.",
+  )
   if value.x in (start, end) { value.x } else { end }
 }
 
-/// Extract the settings shape consumed by Typst `set list` / `set enum`.
-/// - resolved (dictionary): Fully merged list settings.
-/// -> dictionary
-#let build-set-settings(resolved) = (
-  enum: (
-    base: (
-      numbering: resolved.enum.at("numbering"),
-      full: resolved.enum.at("full"),
-    ),
-    tight: (
-      indent: resolved.enum.tight.at("indentation"),
-      spacing: resolved.enum.tight.at("spacing"),
-      body-indent: resolved.enum.tight.at("body-indent"),
-      number-align: normalize-label-align(resolved.enum.tight.at("number-align")),
-    ),
-    loose: (
-      indent: resolved.enum.loose.at("indentation"),
-      spacing: resolved.enum.loose.at("spacing"),
-      body-indent: resolved.enum.loose.at("body-indent"),
-      number-align: normalize-label-align(resolved.enum.loose.at("number-align")),
-    ),
-  ),
-  list: (
-    base: (
-      marker: resolved.list.at("marker"),
-    ),
-    tight: (
-      indent: resolved.list.tight.at("indentation"),
-      spacing: resolved.list.tight.at("spacing"),
-      body-indent: resolved.list.tight.at("body-indent"),
-      marker-align: normalize-label-align(resolved.list.tight.at("marker-align")),
-    ),
-    loose: (
-      indent: resolved.list.loose.at("indentation"),
-      spacing: resolved.list.loose.at("spacing"),
-      body-indent: resolved.list.loose.at("body-indent"),
-      marker-align: normalize-label-align(resolved.list.loose.at("marker-align")),
-    ),
-  ),
-)
-
-/// Extract the minimal settings shape required by renderers.
-/// - resolved (dictionary): Fully merged list settings.
-/// -> dictionary
+/// Normalize optional connector settings and atomic native stroke values.
 #let normalize-connector(connector) = {
   if connector == none {
     return none
@@ -131,40 +100,49 @@
   connector
 }
 
-/// Extract the minimal settings shape required by renderers.
-/// - resolved (dictionary): Fully merged list settings.
-/// -> dictionary
-#let build-render-settings(resolved) = (
-  enum: (
-    tight: (
-      overload: resolved.enum.tight.at("overload"),
-      label-width: resolved.enum.tight.at("number-width"),
-      number-align: normalize-label-align(resolved.enum.tight.at("number-align")),
-      connector: normalize-connector(resolved.enum.tight.at("connector", default: none)),
-      post-numbering: resolved.enum.at("post-numbering"),
-    ),
-    loose: (
-      overload: resolved.enum.loose.at("overload"),
-      label-width: resolved.enum.loose.at("number-width"),
-      number-align: normalize-label-align(resolved.enum.loose.at("number-align")),
-      connector: normalize-connector(resolved.enum.loose.at("connector", default: none)),
-      post-numbering: resolved.enum.at("post-numbering"),
-    ),
-  ),
-  list: (
-    tight: (
-      overload: resolved.list.tight.at("overload"),
-      label-width: resolved.list.tight.at("marker-width"),
-      marker-align: normalize-label-align(resolved.list.tight.at("marker-align")),
-      connector: normalize-connector(resolved.list.tight.at("connector", default: none)),
-    ),
-    loose: (
-      overload: resolved.list.loose.at("overload"),
-      label-width: resolved.list.loose.at("marker-width"),
-      marker-align: normalize-label-align(resolved.list.loose.at("marker-align")),
-      connector: normalize-connector(resolved.list.loose.at("connector", default: none)),
-    ),
-  ),
+/// Map one namespace to the native fields applied before show transformations.
+#let build-set-settings(kind, settings) = {
+  let fields = (
+    indent: settings.indentation,
+    spacing: settings.spacing,
+    body-indent: settings.body-indent,
+  )
+  let align-key = if kind == "enum" { "number-align" } else { "marker-align" }
+  fields.insert(align-key, normalize-label-align(settings.at(align-key)))
+  fields
+}
+
+#let build-render-settings(kind, settings) = {
+  let align-key = if kind == "enum" { "number-align" } else { "marker-align" }
+  let width-key = if kind == "enum" { "number-width" } else { "marker-width" }
+  let fields = (
+    overload: settings.overload,
+    label-width: settings.at(width-key),
+    connector: normalize-connector(settings.at("connector", default: none)),
+    post-numbering: settings.at("post-numbering", default: none),
+  )
+  fields.insert(align-key, normalize-label-align(settings.at(align-key)))
+  fields
+}
+
+#let register-variant(kind, tight, defaults) = terms-data.register(
+  kind + if tight { "-tight" } else { "-loose" },
+  defaults: defaults,
+  apply: settings => {
+    if kind == "enum" {
+      assert(
+        settings.post-numbering == none
+          or type(settings.post-numbering) == function,
+        message: "`post-numbering` must be a function or none.",
+      )
+    }
+    let fields = build-set-settings(kind, settings)
+    let element = if kind == "enum" { enum } else { list }
+    doc => {
+      show element.where(tight: tight): set element(..fields)
+      doc
+    }
+  },
 )
 
 // Tracks the current parent numbering path.
@@ -250,7 +228,7 @@
       }
       let num = numbering(it.numbering, ..parents.get(), number)
       if settings.post-numbering != none {
-        num = settings.post-numbering(num)
+        num = (settings.post-numbering)(num)
       }
       num
     } else {
@@ -332,7 +310,8 @@
 
   let stem-stroke = if connector.enabled { connector.stroke } else { none }
   let foot-padding = if (
-    stem-stroke != none and connector.foot-stroke != none
+    stem-stroke != none
+      and connector.foot-stroke != none
       and stem-stroke.cap in ("square", "round")
   ) {
     if stem-stroke.thickness == auto { 1pt } else { stem-stroke.thickness }
@@ -372,12 +351,35 @@
   let create-anchor(kind, index) = metadata(anchor-value(kind, index))
   let anchor-pos(kind, index) = {
     let matches = query(metadata.where(value: anchor-value(kind, index)))
-    if matches.len() == 0 { none } else { matches.first().location().position() }
+    if matches.len() == 0 { none } else {
+      matches.first().location().position()
+    }
   }
   let body-create(i) = create-anchor("baseline", i)
   let body-pos(i) = anchor-pos("baseline", i)
+  let header-create(i) = create-anchor("header", i)
+  let header-pos(i) = anchor-pos("header", i)
+  let fragment-create(i) = create-anchor("fragment", i)
+  let fragment-pos(i) = anchor-pos("fragment", i)
   let bottom-create(i) = create-anchor("bottom", i)
   let bottom-pos(i) = anchor-pos("bottom", i)
+  let connector-visible(baseline, bottom) = (
+    connector.enabled
+      and baseline != none
+      and bottom != none
+      and (
+        baseline.page != bottom.page
+          or bottom.y - baseline.y > connector.threshold.to-absolute()
+      )
+  )
+  // Use a font strut, not label content with introspective show rules.
+  let connector-clearance = if connector.enabled {
+    measure(text(
+      sym.zws,
+      top-edge: "baseline",
+      bottom-edge: "descender",
+    )).height
+  } else { 0pt }
 
   set par(spacing: item-spacing, first-line-indent: 0em)
 
@@ -385,10 +387,17 @@
   // Fixed label widths exclude body-indent and do not grow for longer labels.
   let fixed-width = settings.label-width != auto
   if fixed-width {
-    assert(settings.label-width.to-absolute() >= 0pt, message: "Label width must be non-negative.")
+    assert(
+      settings.label-width.to-absolute() >= 0pt,
+      message: "Label width must be non-negative.",
+    )
   }
-  let label-width = if fixed-width { settings.label-width + body-indent } else { 0pt }
-  let label-align = if kind == "enum" { settings.number-align } else { settings.marker-align }
+  let label-width = if fixed-width { settings.label-width + body-indent } else {
+    0pt
+  }
+  let label-align = if kind == "enum" { settings.number-align } else {
+    settings.marker-align
+  }
   // Resolve the widest label before placing any zero-width prefixes.
   let items = ()
   for child in it.children {
@@ -406,15 +415,22 @@
     } else {
       marker
     }
-    let label = if fixed-width {
-      box(width: settings.label-width, align(label-align, parent-part))
-    } else {
-      parent-part
-    } + h(body-indent)
+    let label = (
+      if fixed-width {
+        box(width: settings.label-width, align(label-align, parent-part))
+      } else {
+        parent-part
+      }
+        + h(body-indent)
+    )
     if not fixed-width {
       label-width = calc.max(label-width, measure(label).width)
     }
-    items.push((child: child, label: label, parent: if kind == "enum" { number } else { 0 }))
+    items.push((
+      child: child,
+      label: label,
+      parent: if kind == "enum" { number } else { 0 },
+    ))
     if kind == "enum" {
       number += delta
     }
@@ -429,7 +445,10 @@
       // The zero-width label shares the first line's baseline and page break.
       let prefix = box(width: 0pt, {
         h(-label-width)
-        box(width: label-width, align(if fixed-width { end } else { label-align }, item.label))
+        box(width: label-width, align(
+          if fixed-width { end } else { label-align },
+          item.label,
+        ))
       })
       text(prefix + split.first, top-edge: "ascender")
       split.rest
@@ -437,8 +456,38 @@
     }
 
     cells.push(grid.cell(colspan: 5, inset: 0pt)[])
-    cells.push(grid.cell(colspan: 4, inset: 0pt)[])
-    cells.push(grid.cell(rowspan: if connector.enabled { 3 } else { 2 }, inset: 0pt, align: start + top)[
+    cells.push(grid.cell(colspan: 4, inset: 0pt)[
+      #if connector.enabled {
+        place(top + start, header-create(i))
+        context {
+          let baseline = body-pos(i)
+          let bottom = bottom-pos(i)
+          let origin = header-pos(i)
+          if connector-visible(baseline, bottom) and origin != none {
+            let reserve(start) = block(width: 0pt, height: if (
+              start != none and baseline.page == start.page
+            ) {
+              calc.max(0pt, baseline.y - start.y + connector-clearance)
+            } else { 0pt })
+            if baseline.page > origin.page {
+              // Mirror empty leading fragments without separating the label from its line.
+              for _ in range(baseline.page - origin.page) {
+                colbreak()
+              }
+              place(top + start, fragment-create(i))
+              context reserve(fragment-pos(i))
+            } else {
+              reserve(origin)
+            }
+          }
+        }
+      }
+    ])
+    cells.push(grid.cell(
+      rowspan: if connector.enabled { 3 } else { 2 },
+      inset: 0pt,
+      align: start + top,
+    )[
       #set text(cjk-latin-spacing: none)
       #sym.zws#body-create(i)#body
     ])
@@ -450,18 +499,15 @@
       for _ in range(4) {
         cells.push(grid.cell(inset: 0pt)[])
       }
-      cells.push(grid.cell(colspan: 5, inset: 0pt, align: start + top)[#bottom-create(i)])
+      cells.push(grid.cell(
+        colspan: 5,
+        inset: 0pt,
+        align: start + top,
+      )[#bottom-create(i)])
       let baseline = body-pos(i)
       let bottom = bottom-pos(i)
       // Anchors become available after this context has emitted its first layout.
-      let visible = if baseline == none or bottom == none {
-        false
-      } else {
-        (
-          baseline.page != bottom.page
-            or bottom.y - baseline.y > connector.threshold.to-absolute()
-        )
-      }
+      let visible = connector-visible(baseline, bottom)
       // Visibility affects strokes only, so anchor positions remain stable.
       cells.push(grid.vline(
         x: 2,
@@ -492,15 +538,28 @@
     body-offset
   }
   let right-gap = if connector.enabled { connector.position } else { 0pt }
-  let half-foot = if connector.enabled { connector.foot-width.to-absolute() / 2 } else { 0pt }
-  assert(half-foot >= 0pt, message: "connector.foot-width must be non-negative.")
+  let half-foot = if connector.enabled {
+    connector.foot-width.to-absolute() / 2
+  } else { 0pt }
+  assert(
+    half-foot >= 0pt,
+    message: "connector.foot-width must be non-negative.",
+  )
   // Clip the foot to the indent area when the stem is near either edge.
   let left-foot = calc.min(half-foot, left-gap.to-absolute())
   let right-foot = calc.min(half-foot, right-gap.to-absolute())
   grid(
-    columns: (left-gap - left-foot, left-foot, right-foot, right-gap - right-foot, 1fr),
+    columns: (
+      left-gap - left-foot,
+      left-foot,
+      right-foot,
+      right-gap - right-foot,
+      1fr,
+    ),
     rows: {
-      let item-rows = if connector.enabled { (0pt, auto, auto, foot-padding, 0pt) } else { (0pt, auto, auto) }
+      let item-rows = if connector.enabled {
+        (0pt, auto, auto, foot-padding, 0pt)
+      } else { (0pt, auto, auto) }
       (item-rows + (item-spacing,)) * (it.children.len() - 1) + item-rows
     },
     align: start + top,
@@ -523,46 +582,43 @@
   }
 }
 
-/// Skipping the show rule preserves Typst's native list structure and layout.
-#let apply-render-settings(kind, settings) = doc => {
-  let element = if kind == "enum" { enum } else { list }
-  let apply-variant(tight, variant, body) = {
-    let renderer = resolve-list-renderer(variant.overload)
-    if renderer != none {
-      show element.where(tight: tight): renderer(kind, variant)
-      body
+/// Returning the original element for false preserves its show guard and native layout.
+#let render-list(kind, it) = terms-data.get(
+  kind + if it.tight { "-tight" } else { "-loose" },
+  settings => {
+    let renderer = resolve-list-renderer(settings.overload)
+    if renderer == none {
+      it
     } else {
-      body
+      renderer(kind, build-render-settings(kind, settings))(it)
     }
-  }
-  show: body => apply-variant(true, settings.tight, body)
-  show: body => apply-variant(false, settings.loose, body)
-  doc
-}
+  },
+)
 
-/// Public entry point for the lists module.
-/// - settings (dictionary): Fully merged list settings.
-/// -> function
+/// Install once; local changes use set_("list-tight", ..), and the other three variants.
 #let better-lists(settings) = doc => {
   let resolved = modify-dict(default-list-settings, settings)
-  assert(
-    resolved.enum.at("post-numbering") == none
-      or type(resolved.enum.at("post-numbering")) == function,
-    message: "`enum.post-numbering` must be a function or none.",
-  )
+  let variant(kind, tight) = {
+    let base = resolved.at(kind)
+    let settings = base.at(if tight { "tight" } else { "loose" })
+    if kind == "enum" {
+      settings.insert("post-numbering", base.post-numbering)
+    }
+    if "connector" in settings {
+      settings.connector = normalize-connector(settings.connector)
+    }
+    settings
+  }
 
-  let set-settings = build-set-settings(resolved)
-  let render-settings = build-render-settings(resolved)
+  set enum(numbering: resolved.enum.numbering, full: resolved.enum.full)
+  set list(marker: resolved.list.marker)
 
-  set enum(..set-settings.enum.base)
-  set list(..set-settings.list.base)
+  show: register-variant("list", true, variant("list", true))
+  show: register-variant("list", false, variant("list", false))
+  show: register-variant("enum", true, variant("enum", true))
+  show: register-variant("enum", false, variant("enum", false))
 
-  show list.where(tight: true): set list(..set-settings.list.tight)
-  show list.where(tight: false): set list(..set-settings.list.loose)
-  show enum.where(tight: true): set enum(..set-settings.enum.tight)
-  show enum.where(tight: false): set enum(..set-settings.enum.loose)
-
-  show: apply-render-settings("list", render-settings.list)
-  show: apply-render-settings("enum", render-settings.enum)
+  show list: it => render-list("list", it)
+  show enum: it => render-list("enum", it)
   doc
 }

@@ -50,7 +50,12 @@
     let collecting = true
     for child in body.children {
       if collecting {
-        let (flag, child-acc, child-rest) = _trim-content-by-type(child, accept-type, predicate-func, recursive)
+        let (flag, child-acc, child-rest) = _trim-content-by-type(
+          child,
+          accept-type,
+          predicate-func,
+          recursive,
+        )
         if flag {
           acc += child-acc
         } else {
@@ -65,14 +70,27 @@
     }
     return (collecting, acc, if rest == [] { none } else { rest })
   }
-  if body.func() in accept-type or (predicate-func != none and predicate-func(body)) {
+  if (
+    body.func() in accept-type
+      or (predicate-func != none and predicate-func(body))
+  ) {
     return (true, body, none)
   }
   (false, [], body)
 }
 
-#let trim-content-by-type(body, accept-type: (), predicate-func: none, recursive: true) = {
-  let (_, acc, rest) = _trim-content-by-type(body, accept-type, predicate-func, recursive)
+#let trim-content-by-type(
+  body,
+  accept-type: (),
+  predicate-func: none,
+  recursive: true,
+) = {
+  let (_, acc, rest) = _trim-content-by-type(
+    body,
+    accept-type,
+    predicate-func,
+    recursive,
+  )
   (acc, rest)
 }
 
@@ -89,7 +107,10 @@
     )
   }
 
-  let (first, rest) = trim-content-by-type(body, predicate-func: is-inline-element)
+  let (first, rest) = trim-content-by-type(
+    body,
+    predicate-func: is-inline-element,
+  )
 
   (first: first, rest: rest)
 }

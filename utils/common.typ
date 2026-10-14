@@ -44,7 +44,8 @@
   if mod == none { return res }
   assert(
     type(mod) == dictionary,
-    message: "`mod` must be a dictionary or none, found type " + repr(type(mod)),
+    message: "`mod` must be a dictionary or none, found type "
+      + repr(type(mod)),
   )
 
   for (key, mod_val) in mod.pairs() {
@@ -75,7 +76,8 @@
   if mod == none { return res }
   assert(
     type(mod) == dictionary,
-    message: "`mod` must be a dictionary or none, found type " + repr(type(mod)),
+    message: "`mod` must be a dictionary or none, found type "
+      + repr(type(mod)),
   )
 
   for (key, mod_val) in mod.pairs() {
@@ -119,7 +121,7 @@
     type(sample) == dictionary,
     message: "`sample` must be a dictionary, found " + repr(type(sample)),
   )
-  
+
   if type(sample) != dictionary {
     return false
   }
